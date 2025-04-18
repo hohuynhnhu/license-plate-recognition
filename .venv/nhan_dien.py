@@ -5,7 +5,8 @@ import winsound
 import easyocr
 import os
 import csv
-from datetime import datetime
+
+import re
 
 # Load YOLOv8 model
 model = YOLO("D:/train_bien_so_xe/.venv/runs/detect/train/weights/best.pt")
@@ -23,7 +24,7 @@ csv_file = ".venv/bien_so.csv"
 if not os.path.exists(csv_file):
     with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Thời gian", "Biển số"])
+
 
 while True:
     ret, frame = cap.read()
@@ -47,37 +48,59 @@ while True:
                 best_plate = frame[y1:y2, x1:x2]
 
     cv2.imshow("Nhan Dien Bien So", frame)
-
-    if best_conf > 0.7 and best_plate is not None and not ocr_done:
-        # Lưu ảnh và xử lý OCR
+#chỉnh lại độ tương phản sao cho nhận dạng hơn 90%
+    if best_conf > 0.8 and best_plate is not None and not ocr_done:
+        # Lưu ảnh gốc biển số
         cv2.imwrite(".venv/bien_so_xe.jpg", best_frame)
+
+        # Tiền xử lý ảnh biển số
         plate_gray = cv2.cvtColor(best_plate, cv2.COLOR_BGR2GRAY)
-        plate_contrast = cv2.convertScaleAbs(plate_gray, alpha=1, beta=-1)
+        plate_blur = cv2.GaussianBlur(plate_gray, (3, 3), 0)
+        plate_equalized = cv2.equalizeHist(plate_blur)
+        plate_sharp = cv2.addWeighted(plate_gray, 1.5, plate_blur, -0.5, 0)
+
+        # Threshold để phân biệt chữ
+        _, thresh = cv2.threshold(plate_sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         plate_path = ".venv/bien_so_xe_da_cat.jpg"
-        cv2.imwrite(plate_path, plate_contrast)
+        cv2.imwrite(plate_path, thresh)
 
         print("📸 Đã lưu ảnh biển số rõ nhất!")
         winsound.Beep(1000, 500)
 
         # OCR
-        img = cv2.imread(plate_path)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        sharp = cv2.GaussianBlur(gray, (0, 0), 3)
-        sharp = cv2.addWeighted(gray, 1.5, sharp, -0.5, 0)
-        _, thresh = cv2.threshold(sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
         reader = easyocr.Reader(['en'], gpu=False)
         ocr_results = reader.readtext(thresh, detail=0)
 
         print("Kết quả OCR (thô):", ocr_results)
 
-        # Ghi kết quả vào CSV
+
+        def fix_common_ocr_mistakes(text):
+            corrections = {
+                'I': '1',
+                'L': '1',
+                '|': '1',
+                'O': '0',
+                'Q': '0',
+                'S': '5',
+                # Nếu có thêm trường hợp nào bạn thấy hay nhầm thì bổ sung vào đây
+            }
+            for wrong, right in corrections.items():
+                text = text.replace(wrong, right)
+            return text
+
+
+        # Hậu xử lý: loại bỏ mọi ký tự trừ chữ cái, số, dấu gạch ngang (-), và dấu chấm (.)
+        processed_texts = []
+        for text in ocr_results:
+            filtered = re.sub(r'[^A-Z0-9\-\.]', '', text.upper())
+            corrected = fix_common_ocr_mistakes(filtered)
+            if 5 <= len(corrected) <= 12:
+                processed_texts.append(corrected)
+
         with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            now = datetime.now().strftime("%Y-%m-%d %H:%M")
-            plate_text = ', '.join(ocr_results)
-            writer.writerow([now, plate_text])
+            plate_text = ', '.join(processed_texts)
+            file.write(f"{plate_text}\n")
 
         print("💾 Đã lưu vào file bien_so.csv!")
 
