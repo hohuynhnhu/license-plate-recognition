@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "929997693788",
+    "project_id": "tramxeuth",
+    "storage_bucket": "tramxeuth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929997693788:android:78ca497c63bc97082f9799",
+        "android_client_info": {
+          "package_name": "com.example.tramxeuth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX6O1ib2F12WHGnXWi000DnaKPTZSwTD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

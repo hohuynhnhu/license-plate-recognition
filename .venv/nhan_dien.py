@@ -8,7 +8,7 @@ import csv
 from datetime import datetime
 
 # Load YOLOv8 model
-model = YOLO("D:/train_bien_so_xe/.venv/runs/detect/train/weights/best.pt")
+model = YOLO("E:/CDHTGTTM/codeGit/license-plate-recognition/.venv/runs/detect/train/weights/best.pt")
 
 # Open camera
 cap = cv2.VideoCapture(0)
