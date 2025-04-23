@@ -3,89 +3,107 @@ import torch
 from ultralytics import YOLO
 import winsound
 import easyocr
-import os
-import csv
-from datetime import datetime
 
-# Load YOLOv8 model
-model = YOLO("E:/CDHTGTTM/codeGit/license-plate-recognition/.venv/runs/detect/train/weights/best.pt")
 
-# Open camera
-cap = cv2.VideoCapture(0)
+import re
+import time
 
-best_conf = 0
-best_frame = None
-best_plate = None
-ocr_done = False
 
-# Create CSV file if not exists
-csv_file = ".venv/bien_so.csv"
-if not os.path.exists(csv_file):
-    with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Thời gian", "Biển số"])
+def fix_common_ocr_mistakes(text):
+    corrections = {
+        'I': '1',
+        'L': '1',
+        '|': '1',
+        'O': '0',
+        'Q': '0',
+        'S': '5',
+    }
+    for wrong, right in corrections.items():
+        text = text.replace(wrong, right)
+    return text
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
 
-    results = model(frame)
+def detect_license_plate():
+    model = YOLO("D:/giaothong/license-plate-recognition/.venv/runs/detect/train/weights/best.pt")
+    cap = cv2.VideoCapture(0)
 
-    for r in results:
-        if r.boxes is None:
-            continue
-        for box in r.boxes:
-            confidence = box.conf[0].item()
+    recognized_plates = []
+    best_conf = 0
+    best_frame = None
+    best_plate = None
+    last_ocr_time = time.time()
 
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-            if confidence > best_conf:
-                best_conf = confidence
-                best_frame = frame.copy()
-                best_plate = frame[y1:y2, x1:x2]
+        results = model(frame)
+        for r in results:
+            if r.boxes is None:
+                continue
+            for box in r.boxes:
+                confidence = box.conf[0].item()
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    cv2.imshow("Nhan Dien Bien So", frame)
+                if confidence > best_conf:
+                    best_conf = confidence
+                    best_frame = frame.copy()
+                    best_plate = frame[y1:y2, x1:x2]
 
-    if best_conf > 0.7 and best_plate is not None and not ocr_done:
-        # Lưu ảnh và xử lý OCR
-        cv2.imwrite(".venv/bien_so_xe.jpg", best_frame)
-        plate_gray = cv2.cvtColor(best_plate, cv2.COLOR_BGR2GRAY)
-        plate_contrast = cv2.convertScaleAbs(plate_gray, alpha=1, beta=-1)
+        cv2.imshow("Nhan Dien Bien So", frame)
 
-        plate_path = ".venv/bien_so_xe_da_cat.jpg"
-        cv2.imwrite(plate_path, plate_contrast)
+        current_time = time.time()
+        if best_conf > 0.8 and best_plate is not None and (current_time - last_ocr_time >= 15):
+            last_ocr_time = current_time
 
-        print("📸 Đã lưu ảnh biển số rõ nhất!")
-        winsound.Beep(1000, 500)
+            # Xử lý ảnh biển số
+            plate_gray = cv2.cvtColor(best_plate, cv2.COLOR_BGR2GRAY)
+            plate_blur = cv2.GaussianBlur(plate_gray, (3, 3), 0)
+            plate_sharp = cv2.addWeighted(plate_gray, 1.5, plate_blur, -0.5, 0)
+            _, thresh = cv2.threshold(plate_sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        # OCR
-        img = cv2.imread(plate_path)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        sharp = cv2.GaussianBlur(gray, (0, 0), 3)
-        sharp = cv2.addWeighted(gray, 1.5, sharp, -0.5, 0)
-        _, thresh = cv2.threshold(sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            cv2.imwrite(".venv/bien_so_xe.jpg", best_frame)
+            cv2.imwrite(".venv/bien_so_xe_da_cat.jpg", thresh)
+            print("📸 Đã lưu ảnh biển số rõ nhất! (tự động sau 15s)")
 
-        reader = easyocr.Reader(['en'], gpu=False)
-        ocr_results = reader.readtext(thresh, detail=0)
+            winsound.Beep(1000, 500)
 
-        print("Kết quả OCR (thô):", ocr_results)
+            # OCR
+            reader = easyocr.Reader(['en'], gpu=False)
+            ocr_results = reader.readtext(thresh, detail=0)
+            print("🧪 Kết quả OCR:", ocr_results)
 
-        # Ghi kết quả vào CSV
-        with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            now = datetime.now().strftime("%Y-%m-%d %H:%M")
-            plate_text = ', '.join(ocr_results)
-            writer.writerow([now, plate_text])
+            processed_texts = []
+            for text in ocr_results:
+                filtered = re.sub(r'[^A-Z0-9]', '', text.upper())
+                corrected = fix_common_ocr_mistakes(filtered)
+                if 2 <= len(corrected) <= 8:
+                    processed_texts.append(corrected)
 
-        print("💾 Đã lưu vào file bien_so.csv!")
+            if processed_texts:
+                # Giả định dòng đầu là chữ, dòng sau là số
+                if len(processed_texts) >= 2:
+                    line1 = processed_texts[0]
+                    line2 = processed_texts[1]
+                    if len(line2) >= 3:
+                        line2 = line2[:-2] + '.' + line2[-2:]
+                    full_plate = f"{line1},{line2}"
+                else:
+                    full_plate = processed_texts[0]
 
-        ocr_done = True
-        best_conf = 0
+                print("✅ Biển số quét được:", full_plate)
+                if 5 <= len(full_plate) <= 15:
+                    recognized_plates.append(full_plate)
+                    return full_plate
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+            best_conf = 0  # reset
 
-cap.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    return recognized_plates[0] if recognized_plates else None
+
