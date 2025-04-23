@@ -4,6 +4,7 @@ from ultralytics import YOLO
 import winsound
 import easyocr
 
+
 import re
 import time
 
