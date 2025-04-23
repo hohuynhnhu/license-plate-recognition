@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.foundation.android)
     implementation(libs.androidx.material3.android)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,5 +66,8 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation ("androidx.navigation:navigation-compose:2.8.9")
+
+    //firebase
+    implementation("com.google.firebase:firebase-auth")
 
 }
