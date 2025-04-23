@@ -17,7 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Adjust
-import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,18 +38,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tramxeuth.Model.thongtinSinhvien
 import com.example.tramxeuth.R
-import kotlin.math.sinh
+import com.example.tramxeuth.ViewModel.AuthViewModel
+import com.example.tramxeuth.ViewModel.FirebaseViewModel
+import com.example.tramxeuth.ViewModel.UserViewModel
 
 @Composable
-fun homeScreen(navController: NavController) {
+fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
+    val user = userViewModel.currentUser
+    val isActive = firebaseViewModel.isActive.value
+
+    LaunchedEffect(user) {
+        if (user == null)
+            userViewModel.loadUserData()
+        else
+            user.biensoxe?.let { firebaseViewModel.startListening(it) }
+    }
     Box(
         modifier = Modifier.fillMaxSize()
+            .padding(bottom = 30.dp)
     ) {
         Image(
             painter = painterResource(id = R.drawable.bg_uth),
@@ -69,15 +80,23 @@ fun homeScreen(navController: NavController) {
         ) { 
             topLayout(navController)
         }
-        var sinhvien1 = thongtinSinhvien("123456789012", "Nguyễn Thành Đạt", "2251120413")
         Card(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 150.dp),
             shape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp)
         ) {
-            thongtinsinhvien(sinhvien1.cccd, sinhvien1.name, sinhvien1.mssv)
-            thongtinxe()
+            thongtinsinhvien(user?.email, user?.ten, user?.mssv)
+            thongtinxe(user?.biensoxe, isActive, firebaseViewModel)
+        }
+        Button(
+            onClick = { authViewModel.logout({
+                    userViewModel.clearUserData()
+                    navController.navigate("login")
+                }) },
+            modifier = Modifier.align(Alignment.BottomEnd)
+        ) {
+            Text("Đăng xuất")
         }
     }
 }
@@ -133,7 +152,7 @@ fun topLayout(navController: NavController) {
 }
 
 @Composable
-fun thongtinsinhvien(cccd: String, name: String, mssv: String) {
+fun thongtinsinhvien(email: String?, name: String?, mssv: String?) {
     tieude("Thông tin sinh viên")
     Card(
         modifier = Modifier
@@ -147,7 +166,7 @@ fun thongtinsinhvien(cccd: String, name: String, mssv: String) {
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(11.dp),
         ) {
-            itemThongtin(Icons.Default.Badge, "CCCD", cccd)
+            itemThongtin(Icons.Default.Email, "Email", email)
             itemThongtin(Icons.Default.PermIdentity, "Họ và tên", name)
             itemThongtin(Icons.Default.School, "MSSV", mssv)
 
@@ -157,7 +176,7 @@ fun thongtinsinhvien(cccd: String, name: String, mssv: String) {
 
 // cccd: Badget, hovaten: PermIdentity, mssv: School
 @Composable
-fun itemThongtin(icon: ImageVector?, title: String, content: String) {
+fun itemThongtin(icon: ImageVector?, title: String, content: String?) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -176,7 +195,7 @@ fun itemThongtin(icon: ImageVector?, title: String, content: String) {
             fontSize = 19.sp
         )
         Text(
-            text = content,
+            text = content ?: "Đang tải ....",
             fontSize = 19.sp,
             color = Color(0xFF555555)
         )
@@ -195,7 +214,7 @@ fun tieude(title: String) {
     )
 }
 @Composable
-fun thongtinxe() {
+fun thongtinxe(biensoxe: String?, trangthai: Boolean?, firebaseViewModel: FirebaseViewModel) {
     tieude("Thông tin xe")
     Card(
         modifier = Modifier
@@ -209,15 +228,15 @@ fun thongtinxe() {
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(11.dp),
         ) {
-            itemThongtin(null,"Biển số xe", "A1-11 11111")
-            itemTrangthai("Trạng thái", 0xFF555555)
-            buttonLeave(0xFFD30101, true)
+            itemThongtin(null,"Biển số xe", biensoxe)
+            itemTrangthai("Trạng thái", trangthai)
+            buttonLeave( trangthai, firebaseViewModel, biensoxe)
         }
     }
 }
 
 @Composable
-fun itemTrangthai(title: String, colorIcon: Long,) {
+fun itemTrangthai(title: String, trangthai: Boolean?) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -232,12 +251,24 @@ fun itemTrangthai(title: String, colorIcon: Long,) {
         Icon(
             imageVector = Icons.Default.Adjust,
             contentDescription = "",
-            tint = Color(colorIcon)
+            tint = when(trangthai){
+                false -> Color(0xFFFFC107)
+                true -> Color(0xFF4CAF50)
+                else -> Color(0xFF555555)
+            },
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
-            text = "Chưa đổ",
-            color = Color(0xFF555555),
+            text = when(trangthai){
+                false -> "Chuẩn bị rời"
+                true -> "Đang đổ"
+                else -> "Chưa đổ"
+            },
+            color = when(trangthai){
+                false -> Color(0xFFFFC107)
+                true -> Color(0xFF4CAF50)
+                else -> Color(0xFF555555)
+            },
             fontSize = 19.sp
         )
     }
@@ -245,16 +276,24 @@ fun itemTrangthai(title: String, colorIcon: Long,) {
 
 //0xFFD30101
 @Composable
-fun buttonLeave(colorButton: Long, state: Boolean) {
+fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, biensoxe: String?) {
     Button(
-        onClick = {},
+        onClick = {
+            if (biensoxe != null) {
+                firebaseViewModel.updateCar(biensoxe, false)
+            }
+        },
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(colorButton)
+            containerColor = when(trangthai){
+                true -> Color(0xFFD30101)
+                else -> Color(0xFF555555)
+            }
         ),
-        modifier = Modifier.width(200.dp)
+        modifier = Modifier
+            .width(200.dp)
             .height(55.dp),
-        enabled = state
+        enabled = trangthai?: false
         ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
