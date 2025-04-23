@@ -49,13 +49,18 @@ import com.example.tramxeuth.ViewModel.UserViewModel
 @Composable
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val user = userViewModel.currentUser
-    val isActive = firebaseViewModel.isActive.value
+    val isTrangthai = firebaseViewModel.isTrangthai.value
+    val isCanhbao = firebaseViewModel.isCanhbao.value
 
     LaunchedEffect(user) {
         if (user == null)
             userViewModel.loadUserData()
-        else
-            user.biensoxe?.let { firebaseViewModel.startListening(it) }
+        else{
+            user.biensoxe?.let { firebaseViewModel.startListeningTrangthai(it) }
+            user.biensoxe?.let { firebaseViewModel.startListeningCanhbao(it) }
+
+        }
+
     }
     Box(
         modifier = Modifier.fillMaxSize()
@@ -87,7 +92,8 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             shape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp)
         ) {
             thongtinsinhvien(user?.email, user?.ten, user?.mssv)
-            thongtinxe(user?.biensoxe, isActive, firebaseViewModel)
+            user?.biensoxe?.let { CanhBaoDialog(firebaseViewModel, it) }
+            thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
         }
         Button(
             onClick = { authViewModel.logout({
@@ -280,7 +286,7 @@ fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, bien
     Button(
         onClick = {
             if (biensoxe != null) {
-                firebaseViewModel.updateCar(biensoxe, false)
+                firebaseViewModel.updateCarTrangthai(biensoxe, false)
             }
         },
         shape = RoundedCornerShape(10.dp),
@@ -314,3 +320,4 @@ fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, bien
         }
     }
 }
+

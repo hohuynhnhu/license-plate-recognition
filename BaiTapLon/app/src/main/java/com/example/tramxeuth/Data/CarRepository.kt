@@ -14,7 +14,7 @@ class CarRepository(
 ) {
     private val messagesRef = database.getReference("biensotrongbai")
         // Hàm lắng nghe thay đổi từ Firebase
-    fun listenForIsActiveChanges(biensoxe:String, onChanged: (Boolean?) -> Unit) {
+    fun listenForTrangthaiChanges(biensoxe:String, onChanged: (Boolean?) -> Unit) {
         messagesRef.child(biensoxe).child("trangthai").addValueEventListener(object :
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -23,13 +23,33 @@ class CarRepository(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w(TAG, "Failed to read value of trangthai.", error.toException())
             }
         })
     }
 
     fun updateTrangThai(biensoxe: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
         messagesRef.child(biensoxe).child("trangthai").setValue(isActive)
+            .addOnCompleteListener { task ->
+                onComplete(task.isSuccessful)
+            }
+    }
+
+    fun listenForCanhbaoChanges(biensoxe:String, onChanged: (Boolean?) -> Unit) {
+        messagesRef.child(biensoxe).child("canhbao").addValueEventListener(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val isActive = snapshot.getValue(Boolean::class.java)
+                onChanged(isActive)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to read value of canh bao.", error.toException())
+            }
+        })
+    }
+
+    fun updateCanhbao(biensoxe: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
+        messagesRef.child(biensoxe).child("canhbao").setValue(isActive)
             .addOnCompleteListener { task ->
                 onComplete(task.isSuccessful)
             }
