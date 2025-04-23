@@ -7,11 +7,19 @@
 # ├── ultralytics
 # └── datasets
 #     └── coco8  ← downloads here (1 MB)
+augmentations:
+  - random_flip: true
+  - random_rotate: 10
+  - random_perspective: 0.5
+  - hsv_h: 0.015
+  - hsv_s: 0.7
+  - hsv_v: 0.4
+  - random_crop: true
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: D:/train_bien_so_xe/.venv/datasets # dataset root dir
-train: D:/train_bien_so_xe/.venv/datasets/train # train images (relative to 'path') 4 images
-val: D:/train_bien_so_xe/.venv/datasets/val # val images (relative to 'path') 4 images
+train: D:/giaothong/license-plate-recognition/.venv/datasets/images/train # train images (relative to 'path') 4 images
+val: D:/giaothong/license-plate-recognition/.venv/datasets/images/val # val images (relative to 'path') 4 images
 
 
 # Classes

@@ -5,13 +5,15 @@ from firebase import firebase
 def normalize_plate(plate):
     if not plate:
         return None
-    return plate.replace(" ", "").replace("-", "").upper()
-
+    return (plate.replace(".", "").upper())
+# .replace(" ", "").replace("-", "")
 firebase = firebase.FirebaseApplication('https://tramxeuth-default-rtdb.firebaseio.com', None)
 
 # 🔍 Lấy biển số từ camera
-bien_so_quet = detect_license_plate()
-bien_so_quet = normalize_plate(bien_so_quet)
+plates = detect_license_plate()  # trả về danh sách
+bien_so_quet = normalize_plate(plates) if plates else None
+# bien_so_firebase = bien_so_quet.replace(',', '_').replace('.', '_')
+
 print("🔍 Biển số quét được:", bien_so_quet)
 
 # 📂 Lấy danh sách biển số đã đăng ký từ Firestore
@@ -24,16 +26,16 @@ print("📂 Danh sách từ Firestore:", ds_bien_so)
 
 # ✅ So sánh biển số
 hop_le = bien_so_quet in ds_bien_so
-print("✅ Hợp lệ!" if hop_le else "❌ Không hợp lệ!")
+if hop_le:
 
-# 📥 Ghi kết quả lên Realtime Database
-data = {
-    'biensoxe': bien_so_quet,
-    'mssv': "123123123",
-    'thoigian': 10,
-    'trangthai': hop_le
-}
-firebase.put('/biensotrongbai', 'xe1', data)
-firebase.put('/biensotrongbai', 'trangthaicong', False)
+    # 2. Ghi trạng thái tổng thể
+    firebase.put('/', 'trangthaicong', hop_le)
+    firebase.put('/biensotrongbai', bien_so_quet, {'trangthai': hop_le, 'canhbao': False})
 
-print("📥 Đã ghi kết quả vào Realtime Database!")
+
+
+    print("📥 Đã ghi kết quả vào Realtime Database!")
+else:
+    print("khong nam trong danh sach")
+
+firebase.put('/', 'trangthaicong', False)
