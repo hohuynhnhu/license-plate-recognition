@@ -50,15 +50,13 @@ import com.example.tramxeuth.ViewModel.UserViewModel
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val user = userViewModel.currentUser
     val isTrangthai = firebaseViewModel.isTrangthai.value
-    val isCanhbao = firebaseViewModel.isCanhbao.value
 
     LaunchedEffect(user) {
         if (user == null)
             userViewModel.loadUserData()
         else{
-            user.biensoxe?.let { firebaseViewModel.startListeningTrangthai(it) }
-            user.biensoxe?.let { firebaseViewModel.startListeningCanhbao(it) }
-
+            firebaseViewModel.startListeningTrangthai(user.biensoxe)
+            firebaseViewModel.startListeningCanhbao(user.biensoxe)
         }
 
     }
@@ -83,7 +81,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             ),
             shape = RoundedCornerShape(0.dp)
         ) { 
-            topLayout(navController)
+            topLayout(navController, user?.ten)
         }
         Card(
             modifier = Modifier
@@ -108,7 +106,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
 }
 
 @Composable
-fun topLayout(navController: NavController) {
+fun topLayout(navController: NavController, ten: String?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -136,12 +134,14 @@ fun topLayout(navController: NavController) {
                         text = "Xin chào!",
                         fontSize = 17.sp,
                     )
-                    Text(
-                        text = "Nguyễn Thành Đạt",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF003153)
-                    )
+                    ten?.let {
+                        Text(
+                            text = it,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF003153)
+                        )
+                    }
                 }
             }
 
@@ -286,6 +286,7 @@ fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, bien
     Button(
         onClick = {
             if (biensoxe != null) {
+                // Thực hiện hành động thay đổi trạng thái
                 firebaseViewModel.updateCarTrangthai(biensoxe, false)
             }
         },
