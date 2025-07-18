@@ -1,4 +1,4 @@
-    package com.example.tramxeuth
+package com.example.tramxeuth
 
 import android.os.Build
 import android.os.Bundle
