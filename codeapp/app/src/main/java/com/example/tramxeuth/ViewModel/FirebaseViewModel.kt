@@ -16,6 +16,12 @@ class FirebaseViewModel() : ViewModel() {
     private val _isCanhbao = mutableStateOf<Boolean?>(null)
     val isCanhbao: State<Boolean?> get() = _isCanhbao
 
+    private val _isTrangthaiPhu = mutableStateOf<Boolean?>(null)
+    val isTrangthaiPhu: State<Boolean?> get() = _isTrangthaiPhu
+
+    private val _isCanhbaoPhu = mutableStateOf<Boolean?>(null)
+    val isCanhbaoPhu: State<Boolean?> get() = _isCanhbaoPhu
+
     fun startListeningTrangthai(biensoxe: String) {
         // Lắng nghe sự thay đổi dữ liệu từ Firebase
         firebaseRepository.listenForTrangthaiChanges(biensoxe) { newIsActive ->
@@ -52,5 +58,36 @@ class FirebaseViewModel() : ViewModel() {
         }
     }
 
+    fun startListeningTrangthaiPhu(biensophu: String) {
+        firebaseRepository.listenForTrangthaiChanges(biensophu) { newIsActive ->
+            _isTrangthaiPhu.value = newIsActive
+        }
+    }
+
+    fun startListeningCanhbaoPhu(biensophu: String) {
+        firebaseRepository.listenForCanhbaoChanges(biensophu) { newIsActive ->
+            _isCanhbaoPhu.value = newIsActive
+        }
+    }
+
+    fun updateCarTrangthaiPhu(biensophu: String, trangthai: Boolean) {
+        firebaseRepository.updateTrangThai(biensophu, trangthai) { success ->
+            if (success) {
+                Log.d("Firebase", "Cập nhật trạng thái thành công")
+            } else {
+                Log.e("Firebase", "Cập nhật trạng thái thất bại")
+            }
+        }
+    }
+
+    fun updateCarCanhbaoPhu(biensophu: String, canhbao: Boolean) {
+        firebaseRepository.updateCanhbao(biensophu, canhbao) { success ->
+            if (success) {
+                Log.d("Firebase", "Cập nhật cảnh báo thành công")
+            } else {
+                Log.e("Firebase", "Cập nhật cảnh báo thất bại")
+            }
+        }
+    }
 
 }

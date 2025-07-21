@@ -2,6 +2,7 @@ package com.example.tramxeuth.Data
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.Model.biensotrongbai
 import com.example.tramxeuth.Model.thongtindangky
 import com.google.firebase.Firebase
@@ -34,5 +35,63 @@ class UserRepository(
         }
     }
 
+    suspend fun themBienSoPhu(bienSoMoi: BienSoPhu): Boolean {
+        val uid = auth.currentUser?.uid ?: return false
+        val docRef = db.collection("thongtindangky").document(uid)
+        docRef.update("biensophu", bienSoMoi).await()
+        return true
+    }
+
+    suspend fun xoaBienSoPhu(bienSoCanXoa: String): Boolean {
+        val uid = auth.currentUser?.uid ?: return false
+        val docRef = db.collection("thongtindangky").document(uid)
+
+        val snapshot = docRef.get().await()
+        val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
+
+        // Chỉ xóa nếu trùng biển
+        if (userData.biensophu?.bienSo == bienSoCanXoa) {
+            docRef.update("biensophu", null).await()
+        }
+
+        return true
+    }
+
+    suspend fun giaHanBienSoPhu(bienSo: String): Boolean {
+        val uid = auth.currentUser?.uid ?: return false
+        val docRef = db.collection("thongtindangky").document(uid)
+
+        val snapshot = docRef.get().await()
+        val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
+
+        val currentBienSoPhu = userData.biensophu ?: return false
+
+        if (currentBienSoPhu.bienSo == bienSo) {
+            val updated = currentBienSoPhu.copy(createdAt = System.currentTimeMillis())
+            docRef.update("biensophu", updated).await()
+        }
+
+        return true
+    }
+
+    fun BienSoPhu.isExpired(): Boolean {
+        val now = System.currentTimeMillis()
+        return (now - createdAt) > 24 * 60 * 60 * 1000 // quá 24 giờ
+    }
+
+    suspend fun removeExpiredBienSoPhu(): Boolean {
+        val uid = auth.currentUser?.uid ?: return false
+        val docRef = db.collection("thongtindangky").document(uid)
+
+        val snapshot = docRef.get().await()
+        val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
+        val current = userData.biensophu ?: return true
+
+        if (current.isExpired()) {
+            docRef.update("biensophu", null).await()
+        }
+
+        return true
+    }
 
 }
