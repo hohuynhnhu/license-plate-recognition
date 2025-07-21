@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tramxeuth.Data.UserRepository
+import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.Model.biensotrongbai
 import com.example.tramxeuth.Model.thongtindangky
 import com.google.firebase.messaging.FirebaseMessaging
@@ -19,8 +20,12 @@ class UserViewModel : ViewModel() {
     var currentUser by mutableStateOf<thongtindangky?>(null)
         private set
 
+    var bienSoPhuOperationResult by mutableStateOf<Boolean?>(null) //biến hiển thị thông báo thành công/thất bại trên màn hình.
+        private set
+
     fun loadUserData() {
         viewModelScope.launch {
+            userRepository.removeExpiredBienSoPhu()
             currentUser = userRepository.getCurrentUser()
             currentUser?.biensoxe?.let { biensoxe ->
                 val topic = biensoxe
@@ -38,4 +43,34 @@ class UserViewModel : ViewModel() {
     fun clearUserData() {
         currentUser = null
     }
+
+    fun themBienSoPhu(bienSo: BienSoPhu) {
+        viewModelScope.launch {
+            val success = userRepository.themBienSoPhu(bienSo)
+            bienSoPhuOperationResult = success
+            if (success) {
+                loadUserData() // reload lại dữ liệu sau khi thêm
+            }
+        }
+    }
+    fun xoaBienSoPhu(bienSo: String) {
+        viewModelScope.launch {
+            bienSoPhuOperationResult = null
+            val success = userRepository.xoaBienSoPhu(bienSo)
+            bienSoPhuOperationResult = success
+            if (success) {
+                loadUserData() // reload lại dữ liệu sau khi xóa
+            }
+        }
+    }
+    fun giaHanBienSoPhu(bienSo: String) {
+        viewModelScope.launch {
+            val success = userRepository.giaHanBienSoPhu(bienSo)
+            bienSoPhuOperationResult = success
+            if (success) {
+                loadUserData()
+            }
+        }
+    }
+
 }

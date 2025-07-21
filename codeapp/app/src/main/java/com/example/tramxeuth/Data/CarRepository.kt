@@ -14,8 +14,8 @@ class CarRepository(
 ) {
     private val messagesRef = database.getReference("biensotrongbai")
         // Hàm lắng nghe thay đổi từ Firebase
-    fun listenForTrangthaiChanges(biensoxe:String, onChanged: (Boolean?) -> Unit) {
-        messagesRef.child(biensoxe).child("trangthai").addValueEventListener(object :
+    fun listenForTrangthaiChanges(bienSo:String, onChanged: (Boolean?) -> Unit) {
+        messagesRef.child(bienSo).child("trangthai").addValueEventListener(object :
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val isActive = snapshot.getValue(Boolean::class.java)
@@ -28,15 +28,15 @@ class CarRepository(
         })
     }
 
-    fun updateTrangThai(biensoxe: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
-        messagesRef.child(biensoxe).child("trangthai").setValue(isActive)
+    fun updateTrangThai(bienSo: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
+        messagesRef.child(bienSo).child("trangthai").setValue(isActive)
             .addOnCompleteListener { task ->
                 onComplete(task.isSuccessful)
             }
     }
 
-    fun listenForCanhbaoChanges(biensoxe:String, onChanged: (Boolean?) -> Unit) {
-        messagesRef.child(biensoxe).child("canhbao").addValueEventListener(object :
+    fun listenForCanhbaoChanges(bienSo:String, onChanged: (Boolean?) -> Unit) {
+        messagesRef.child(bienSo).child("canhbao").addValueEventListener(object :
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val isActive = snapshot.getValue(Boolean::class.java)
@@ -48,8 +48,8 @@ class CarRepository(
         })
     }
 
-    fun updateCanhbao(biensoxe: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
-        messagesRef.child(biensoxe).child("canhbao").setValue(isActive)
+    fun updateCanhbao(bienSo: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
+        messagesRef.child(bienSo).child("canhbao").setValue(isActive)
             .addOnCompleteListener { task ->
                 onComplete(task.isSuccessful)
             }

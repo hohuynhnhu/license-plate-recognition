@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,10 +14,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Adjust
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
@@ -31,6 +34,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +57,8 @@ import com.example.tramxeuth.ViewModel.UserViewModel
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val user = userViewModel.currentUser
     val isTrangthai = firebaseViewModel.isTrangthai.value
+    val isTrangthaiPhu = firebaseViewModel.isTrangthaiPhu.value
+    var showThemXeLaDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         if (user == null)
@@ -57,6 +66,11 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
         else{
             firebaseViewModel.startListeningTrangthai(user.biensoxe)
             firebaseViewModel.startListeningCanhbao(user.biensoxe)
+
+            user.biensophu?.bienSo?.let { bienSoPhu ->
+                firebaseViewModel.startListeningTrangthaiPhu(bienSoPhu)
+                firebaseViewModel.startListeningCanhbaoPhu(bienSoPhu)
+            }
         }
 
     }
@@ -89,10 +103,36 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
                 .padding(top = 150.dp),
             shape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp)
         ) {
-            thongtinsinhvien(user?.email, user?.ten, user?.mssv)
-            user?.biensoxe?.let { CanhBaoDialog(firebaseViewModel, it) }
-            thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 120.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    thongtinsinhvien(user?.email, user?.ten, user?.mssv)
+                }
+                item {
+                    user?.biensoxe?.let { CanhBaoDialog(firebaseViewModel, it) }
+                }
+                item {
+                    user?.biensophu?.bienSo?.let { CanhBaoPhuDialog(firebaseViewModel, it) }
+                }
+                item {
+                    thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
+                }
+                item {
+                    user?.biensophu?.bienSo?.let {
+                        thongtinxePhu(it, isTrangthaiPhu, firebaseViewModel, userViewModel)
+                    }
+                }
+            }
         }
+        // Nút Thêm xe lạ
+        if (user?.biensophu == null) {
+            ThemXePhuButton(userViewModel = userViewModel)
+        }
+
         Button(
             onClick = { authViewModel.logout({
                     userViewModel.clearUserData()
@@ -236,7 +276,41 @@ fun thongtinxe(biensoxe: String?, trangthai: Boolean?, firebaseViewModel: Fireba
         ) {
             itemThongtin(null,"Biển số xe", biensoxe)
             itemTrangthai("Trạng thái", trangthai)
-            buttonLeave( trangthai, firebaseViewModel, biensoxe)
+            buttonLeave(
+                isTrangThai = trangthai,
+                firebaseViewModel = firebaseViewModel,
+                bienSo = biensoxe
+            )
+        }
+    }
+}
+@Composable
+fun thongtinxePhu(biensophu: String?, trangthaiPhu: Boolean?, firebaseViewModel: FirebaseViewModel, userViewModel: UserViewModel) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp, vertical = 15.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xCCADD8E6)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(11.dp),
+        ) {
+            itemThongtin(null, "Biển số lạ", biensophu)
+            itemTrangthai("Trạng thái", trangthaiPhu)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                buttonLeave(
+                    isTrangThai = trangthaiPhu,
+                    firebaseViewModel = firebaseViewModel,
+                    bienSo = biensophu,
+                    isPhu = true
+                )
+                buttonDeletePhu(biensophu, userViewModel)
+            }
         }
     }
 }
@@ -282,17 +356,24 @@ fun itemTrangthai(title: String, trangthai: Boolean?) {
 
 //0xFFD30101
 @Composable
-fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, biensoxe: String?) {
+fun buttonLeave(
+    isTrangThai: Boolean?,
+    firebaseViewModel: FirebaseViewModel,
+    bienSo: String?,
+    isPhu: Boolean = false // Mặc định là xe chính
+) {
     Button(
         onClick = {
-            if (biensoxe != null) {
-                // Thực hiện hành động thay đổi trạng thái
-                firebaseViewModel.updateCarTrangthai(biensoxe, false)
+            bienSo?.let {
+                if (isPhu)
+                    firebaseViewModel.updateCarTrangthaiPhu(it, false)
+                else
+                    firebaseViewModel.updateCarTrangthai(it, false)
             }
         },
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = when(trangthai){
+            containerColor = when (isTrangThai) {
                 true -> Color(0xFFD30101)
                 else -> Color(0xFF555555)
             }
@@ -300,8 +381,8 @@ fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, bien
         modifier = Modifier
             .width(200.dp)
             .height(55.dp),
-        enabled = trangthai?: false
-        ) {
+        enabled = isTrangThai ?: false
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -322,3 +403,66 @@ fun buttonLeave( trangthai: Boolean?, firebaseViewModel: FirebaseViewModel, bien
     }
 }
 
+@Composable
+fun ThemXePhuButton(userViewModel: UserViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        ThemXePhuDialog(userViewModel = userViewModel)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Button(
+            onClick = { showDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(y = (-80).dp)
+        ) {
+            Text("Thêm xe lạ")
+        }
+    }
+}
+
+@Composable
+fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+    Button(
+        onClick = {
+            showDialog = true
+        },
+        contentPadding = PaddingValues(0.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Red
+        ),
+        modifier = Modifier
+            .width(130.dp)
+            .height(55.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Xoá",
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                fontSize = 21.sp
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Xoá biển số phụ",
+                modifier = Modifier
+                    .size(28.dp),
+                tint = Color.White,
+            )
+        }
+    }
+    if (showDialog) {
+        ConfirmDeleteDialog(
+            biensophu = biensophu,
+            userViewModel = userViewModel,
+            onDismiss = { showDialog = false }
+        )
+    }
+}
