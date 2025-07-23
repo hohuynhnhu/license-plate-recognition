@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class UserViewModel : ViewModel() {
+class UserViewModel: ViewModel() {
     private val userRepository = UserRepository()
     var currentUser by mutableStateOf<thongtindangky?>(null)
         private set
