@@ -9,7 +9,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 
-class CarRepository(
+class
+CarRepository(
     private val database: FirebaseDatabase = Firebase.database
 ) {
     private val messagesRef = database.getReference("biensotrongbai")
