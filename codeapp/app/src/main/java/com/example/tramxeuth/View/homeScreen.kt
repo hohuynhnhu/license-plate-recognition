@@ -89,7 +89,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
                 .padding(top = 150.dp),
             shape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp)
         ) {
-            thongtinsinhvien(user?.email, user?.ten, user?.mssv)
+            thongtinsinhvien(user?.email, user?.ten, user?.cccd)
             user?.biensoxe?.let { CanhBaoDialog(firebaseViewModel, it) }
             thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
         }
@@ -158,7 +158,7 @@ fun topLayout(navController: NavController, ten: String?) {
 }
 
 @Composable
-fun thongtinsinhvien(email: String?, name: String?, mssv: String?) {
+fun thongtinsinhvien(email: String?, name: String?, cccd: String?) {
     tieude("Thông tin sinh viên")
     Card(
         modifier = Modifier
@@ -174,13 +174,12 @@ fun thongtinsinhvien(email: String?, name: String?, mssv: String?) {
         ) {
             itemThongtin(Icons.Default.Email, "Email", email)
             itemThongtin(Icons.Default.PermIdentity, "Họ và tên", name)
-            itemThongtin(Icons.Default.School, "MSSV", mssv)
+            itemThongtin(Icons.Default.School, "cccd", cccd)
 
         }
     }
 }
 
-// cccd: Badget, hovaten: PermIdentity, mssv: School
 @Composable
 fun itemThongtin(icon: ImageVector?, title: String, content: String?) {
     Row(
