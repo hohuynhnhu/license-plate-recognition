@@ -1,5 +1,6 @@
 package com.example.tramxeuth.View
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,13 +56,15 @@ import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val user = userViewModel.currentUser
     val isTrangthai = firebaseViewModel.isTrangthai.value
     val isTrangthaiPhu = firebaseViewModel.isTrangthaiPhu.value
-    var showThemXeLaDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         if (user == null)
@@ -122,8 +128,14 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
                     thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
                 }
                 item {
-                    user?.biensophu?.bienSo?.let {
-                        thongtinxePhu(it, isTrangthaiPhu, firebaseViewModel, userViewModel)
+                    user?.biensophu?.let { xePhu ->
+                        thongtinxePhu(
+                            biensophu = xePhu.bienSo,
+                            trangthaiPhu = isTrangthaiPhu,
+                            ngayHetHan = xePhu.ngayHetHan?.toDateString(),
+                            firebaseViewModel = firebaseViewModel,
+                            userViewModel = userViewModel
+                        )
                     }
                 }
             }
@@ -285,7 +297,21 @@ fun thongtinxe(biensoxe: String?, trangthai: Boolean?, firebaseViewModel: Fireba
     }
 }
 @Composable
-fun thongtinxePhu(biensophu: String?, trangthaiPhu: Boolean?, firebaseViewModel: FirebaseViewModel, userViewModel: UserViewModel) {
+fun thongtinxePhu(
+    biensophu: String?,
+    trangthaiPhu: Boolean?,
+    ngayHetHan: String?,
+    firebaseViewModel: FirebaseViewModel,
+    userViewModel: UserViewModel)
+{
+    val ngayHetHanMillis = remember(ngayHetHan) {
+        try {
+            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            format.parse(ngayHetHan)?.time
+        } catch (e: Exception) {
+            null
+        }
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -300,14 +326,35 @@ fun thongtinxePhu(biensophu: String?, trangthaiPhu: Boolean?, firebaseViewModel:
         ) {
             itemThongtin(null, "Biển số lạ", biensophu)
             itemTrangthai("Trạng thái", trangthaiPhu)
+            buttonLeave(
+                isTrangThai = trangthaiPhu,
+                firebaseViewModel = firebaseViewModel,
+                bienSo = biensophu,
+                isPhu = true
+            )
+            // Hiển thị ngày hết hạn
+            if (!ngayHetHan.isNullOrBlank()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    ngayHetHan.let {
+                        Text(
+                            text = "Ngày hết hạn: $it",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 19.sp
+                        )
+                    }
+                }
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                buttonLeave(
-                    isTrangThai = trangthaiPhu,
-                    firebaseViewModel = firebaseViewModel,
-                    bienSo = biensophu,
-                    isPhu = true
+                buttonGiaHanPhu(
+                    isTrangThaiPhu = trangthaiPhu,
+                    bienSoPhu = biensophu,
+                    ngayHetHanStr = ngayHetHan,
+                    userViewModel = userViewModel
                 )
                 buttonDeletePhu(biensophu, userViewModel)
             }
@@ -465,4 +512,74 @@ fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
             onDismiss = { showDialog = false }
         )
     }
+}
+@Composable
+fun buttonGiaHanPhu(
+    isTrangThaiPhu: Boolean?,
+    bienSoPhu: String?,
+    ngayHetHanStr: String?,
+    userViewModel: UserViewModel
+) {
+    val context = LocalContext.current
+    val message = userViewModel.giaHanMessage
+
+    // Hiển thị Toast khi có message từ ViewModel
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            userViewModel.clearGiaHanMessage()
+        }
+    }
+
+    // Tính toán thời gian hết hạn từ chuỗi
+    val ngayHetHanMillis = try {
+        ngayHetHanStr?.let {
+            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            format.parse(it)?.time
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    val currentTime = System.currentTimeMillis()
+    val MILI_GIO = 60 * 60 * 1000
+    val thoiGianConLai = (ngayHetHanMillis ?: 0L) - currentTime
+    val isEnabled = isTrangThaiPhu == false && thoiGianConLai in 1..(12 * MILI_GIO)
+
+    Button(
+        onClick = {
+            bienSoPhu?.let {
+                userViewModel.giaHanBienSoPhu(it)
+            }
+        },
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isEnabled) Color(0xFFFFC107) else Color(0xFFBDBDBD)
+        ),
+        enabled = isEnabled,
+        modifier = Modifier
+            .width(200.dp)
+            .height(55.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Gia hạn",
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                fontSize = 18.sp
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.Schedule,
+                contentDescription = "Gia hạn",
+                tint = Color.Black,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+fun Long.toDateString(): String {
+    val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    return sdf.format(Date(this))
 }

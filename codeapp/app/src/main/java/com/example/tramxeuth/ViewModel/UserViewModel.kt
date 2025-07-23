@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tramxeuth.Data.GiaHanResult
 import com.example.tramxeuth.Data.UserRepository
 import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.Model.biensotrongbai
@@ -63,14 +64,27 @@ class UserViewModel : ViewModel() {
             }
         }
     }
+    var giaHanMessage by mutableStateOf<String?>(null)
+        private set
+
     fun giaHanBienSoPhu(bienSo: String) {
         viewModelScope.launch {
-            val success = userRepository.giaHanBienSoPhu(bienSo)
-            bienSoPhuOperationResult = success
-            if (success) {
-                loadUserData()
+            when (val result = userRepository.giaHanBienSoPhu(bienSo)) {
+                GiaHanResult.SUCCESS -> {
+                    giaHanMessage = "Gia hạn thành công"
+                    loadUserData()
+                }
+                GiaHanResult.ALREADY_EXTENDED -> {
+                    giaHanMessage = "Bạn đã gia hạn rồi"
+                }
+                GiaHanResult.ERROR -> {
+                    giaHanMessage = "Gia hạn thất bại"
+                }
             }
         }
+    }
+    fun clearGiaHanMessage() {
+        giaHanMessage = null
     }
 
 }

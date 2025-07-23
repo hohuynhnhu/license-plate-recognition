@@ -9,7 +9,6 @@ data class thongtindangky(
 )
 data class BienSoPhu(
     var bienSo: String = "",
-    var ngayHetHan: String? = null,
-    var trangThai: String = "active",
+    var ngayHetHan: Long? = null,
     var createdAt: Long = System.currentTimeMillis()
 )
