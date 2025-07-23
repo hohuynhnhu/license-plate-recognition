@@ -94,6 +94,14 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             thongtinxe(user?.biensoxe, isTrangthai, firebaseViewModel)
         }
         Button(
+            onClick = {
+                navController.navigate("parkingHistory/123123")
+            },
+            modifier = Modifier.align(Alignment.BottomStart)
+        ) {
+            Text("Lịch sử")
+        }
+        Button(
             onClick = { authViewModel.logout({
                     userViewModel.clearUserData()
                     navController.navigate("login")

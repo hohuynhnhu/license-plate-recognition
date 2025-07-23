@@ -22,7 +22,6 @@ class UserRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
 ) {
-
     suspend fun getCurrentUser(): thongtindangky? {
         val uid = auth.currentUser?.uid ?: return null
         val doc = db.collection("thongtindangky").document(uid).get().await()
@@ -33,6 +32,4 @@ class UserRepository(
             null
         }
     }
-
-
 }

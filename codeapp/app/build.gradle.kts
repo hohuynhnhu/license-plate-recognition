@@ -72,4 +72,9 @@ dependencies {
     //firebase
     implementation("com.google.firebase:firebase-auth")
 
+    //Tải và hiển thị hình ảnh online
+    implementation(platform("androidx.compose:compose-bom:2025.05.00"))
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+
 }

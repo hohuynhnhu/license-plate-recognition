@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import com.example.tramxeuth.Route.routeScreen
+import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
@@ -23,6 +24,7 @@ import com.example.tramxeuth.ViewModel.UserViewModel
             setContent {
                 routeScreen(authViewModel, userViewModel, firebaseViewModel)
 //                MainScreen()
+//                ParkingHistoryScreen("123123")
             }
         }
     }
