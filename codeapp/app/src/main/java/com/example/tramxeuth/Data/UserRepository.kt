@@ -17,6 +17,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class UserRepository(
     private val auth: FirebaseAuth  = FirebaseAuth.getInstance(),
@@ -57,26 +60,34 @@ class UserRepository(
         return true
     }
 
-    suspend fun giaHanBienSoPhu(bienSo: String): Boolean {
-        val uid = auth.currentUser?.uid ?: return false
+    suspend fun giaHanBienSoPhu(bienSo: String): GiaHanResult {
+        val uid = auth.currentUser?.uid ?: return GiaHanResult.ERROR
         val docRef = db.collection("thongtindangky").document(uid)
 
         val snapshot = docRef.get().await()
-        val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
+        val userData = snapshot.toObject(thongtindangky::class.java) ?: return GiaHanResult.ERROR
 
-        val currentBienSoPhu = userData.biensophu ?: return false
+        val currentBienSoPhu = userData.biensophu ?: return GiaHanResult.ERROR
 
         if (currentBienSoPhu.bienSo == bienSo) {
-            val updated = currentBienSoPhu.copy(createdAt = System.currentTimeMillis())
+            val now = System.currentTimeMillis()
+
+            val thoiGianConLai = (currentBienSoPhu.ngayHetHan ?: 0L) - now
+            val MILI_GIO = 60 * 60 * 1000
+
+            if (thoiGianConLai > 12 * MILI_GIO) {
+                return GiaHanResult.ALREADY_EXTENDED
+            }
+
+            val updated = currentBienSoPhu.copy(
+                createdAt = now,
+                ngayHetHan = now.plus(24 * 60 * 60 * 1000)
+            )
             docRef.update("biensophu", updated).await()
+            return GiaHanResult.SUCCESS
         }
 
-        return true
-    }
-
-    fun BienSoPhu.isExpired(): Boolean {
-        val now = System.currentTimeMillis()
-        return (now - createdAt) > 24 * 60 * 60 * 1000 // quá 24 giờ
+        return GiaHanResult.ERROR
     }
 
     suspend fun removeExpiredBienSoPhu(): Boolean {
@@ -85,13 +96,22 @@ class UserRepository(
 
         val snapshot = docRef.get().await()
         val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
-        val current = userData.biensophu ?: return true
+        val bienSoPhu = userData.biensophu ?: return true
 
-        if (current.isExpired()) {
+        if (bienSoPhu.isExpired()) {
             docRef.update("biensophu", null).await()
+            return true
         }
 
-        return true
+        return false
     }
-
+    fun BienSoPhu.isExpired(): Boolean {
+        val now = System.currentTimeMillis()
+        return this.ngayHetHan != null && now > this.ngayHetHan!!
+    }
+}
+enum class GiaHanResult {
+    SUCCESS,
+    ALREADY_EXTENDED,
+    ERROR
 }
