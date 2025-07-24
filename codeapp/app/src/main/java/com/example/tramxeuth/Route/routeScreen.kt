@@ -17,15 +17,14 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun routeScreen(authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val navController = rememberNavController()
-    LaunchedEffect(Unit) {
+    var startDestination = "login"
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
-            navController.navigate("home")
+            startDestination = "home"
         } else {
-            navController.navigate("login")
+            startDestination = "login"
         }
-    }
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("login") { DangNhapScreen(navController, authViewModel) }
         composable("logup") { DangKyScreen(navController, authViewModel)}
         composable("home") { homeScreen(navController, authViewModel, userViewModel, firebaseViewModel) }
