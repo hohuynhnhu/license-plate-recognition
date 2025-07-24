@@ -19,14 +19,14 @@ class AuthViewModel : ViewModel() {
     var error by mutableStateOf<String?>(null)
     var loading by mutableStateOf(false)
 
-    fun register(email: String, password: String, onSuccess: () -> Unit, ten: String, mssv: String, biensoxe: String) {
+    fun register(email: String, password: String, onSuccess: () -> Unit, ten: String, cccd: String, biensoxe: String) {
         loading = true
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 loading = false
                 if (task.isSuccessful) {
                     user = auth.currentUser
-                    saveUserToFirestore(ten, mssv, biensoxe)
+                    saveUserToFirestore(ten, cccd, biensoxe)
                     onSuccess()
                 } else {
                     error = task.exception?.message
@@ -34,7 +34,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun login(email: String, password: String, onSuccess: () -> Unit) {
+    fun login(email: String, password: String, onSuccess: (String) -> Unit) {
         loading = true
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -43,6 +43,14 @@ class AuthViewModel : ViewModel() {
                     user = auth.currentUser
                     saveFcmTokenToFirestore()
                     onSuccess()
+                    getUserRole{
+                        role->
+                        if(role != null){
+                            onSuccess(role)
+                        }else{
+                            error = "Không tìm thấy role"
+                        }
+                    }
                 } else {
                     error = task.exception?.message
                 }
@@ -72,8 +80,9 @@ class AuthViewModel : ViewModel() {
         val userMap = mapOf(
             "ten" to ten,
             "email" to auth.currentUser?.email,
-            "mssv" to mssv,
-            "biensoxe" to biensoxe
+            "cccd" to cccd,
+            "biensoxe" to biensoxe,
+            "role" to "user"
         )
         db.collection("thongtindangky").document(uid).set(userMap)
     }
@@ -108,4 +117,21 @@ class AuthViewModel : ViewModel() {
                 onLoggedOut()
             }
     }
+    fun getUserRole(onResult: (String?) -> Unit) {
+        val uid =auth.currentUser?.uid?:return onResult(null)
+        val db = FirebaseFirestore.getInstance()
+        db.collection("thongtindangky").document(uid).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val role = document.getString("role")
+                    onResult(role)
+                } else {
+                    onResult(null)
+                    error = "Không tìm thấy role"
+                }
+            }
+            .addOnFailureListener { exception ->
+                onResult(null)
+    }
+}
 }

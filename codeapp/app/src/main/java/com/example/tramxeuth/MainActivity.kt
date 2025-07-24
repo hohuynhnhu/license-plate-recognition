@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.tramxeuth.Route.routeScreen
+import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
@@ -35,6 +36,8 @@ class MainActivity : ComponentActivity() {
                 userViewModel = userViewModel,
                 firebaseViewModel = firebaseViewModel,
             )
+//                MainScreen()
+//                ParkingHistoryScreen("123123")
         }
     }
 }
