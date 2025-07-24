@@ -1,12 +1,16 @@
 package com.example.tramxeuth.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 
 class AuthViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
@@ -37,10 +41,27 @@ class AuthViewModel : ViewModel() {
                 loading = false
                 if (task.isSuccessful) {
                     user = auth.currentUser
+                    saveFcmTokenToFirestore()
                     onSuccess()
                 } else {
                     error = task.exception?.message
                 }
+            }
+    }
+
+    private fun saveFcmTokenToFirestore() {
+        val uid = auth.currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                val userMap = mapOf(
+                    "fcmTokens" to FieldValue.arrayUnion(token)
+                )
+                db.collection("thongtindangky").document(uid).set(userMap, SetOptions.merge())
+            }
+            .addOnFailureListener { e ->
+                Log.e("FCM", "Failed to get FCM token", e)
             }
     }
 
@@ -58,8 +79,33 @@ class AuthViewModel : ViewModel() {
     }
 
     fun logout(onLoggedOut: () -> Unit) {
-        auth.signOut()
-        user = null
-        onLoggedOut()
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            auth.signOut()
+            user = null
+            onLoggedOut()
+            return
+        }
+
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                val db = FirebaseFirestore.getInstance()
+                val updates = mapOf(
+                    "fcmTokens" to FieldValue.arrayRemove(token)
+                )
+
+                db.collection("thongtindangky").document(uid)
+                    .update(updates)
+                    .addOnCompleteListener {
+                        auth.signOut()
+                        user = null
+                        onLoggedOut()
+                    }
+            }
+            .addOnFailureListener {
+                auth.signOut()
+                user = null
+                onLoggedOut()
+            }
     }
 }

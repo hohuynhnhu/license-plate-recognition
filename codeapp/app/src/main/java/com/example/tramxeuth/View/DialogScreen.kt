@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
+import com.example.tramxeuth.ViewModel.NotificationViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -17,6 +18,7 @@ fun CanhBaoDialog(firebaseViewModel: FirebaseViewModel, biensoxe: String) {
     val isCanhbao = firebaseViewModel.isCanhbao.value // hoặc .value nếu là State<Boolean>
     var showDialog by remember { mutableStateOf(false) }
     var thoigian by remember { mutableStateOf(10) }
+    var notificationViewModel = NotificationViewModel()
 
     LaunchedEffect(isCanhbao) {
         if (isCanhbao == true) {
