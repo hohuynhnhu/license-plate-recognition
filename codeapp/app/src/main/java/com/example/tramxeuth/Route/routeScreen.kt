@@ -20,23 +20,15 @@ import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun routeScreen(authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
+fun routeScreen(
+    startDestination: String,
+    authViewModel: AuthViewModel,
+    userViewModel: UserViewModel,
+    firebaseViewModel: FirebaseViewModel,
+    parkingHistoryViewModel: ParkingHistoryViewModel
+) {
     val navController = rememberNavController()
-    var startDestination = "login"
-    val user = FirebaseAuth.getInstance().currentUser
-    val parkingHistoryViewModel: ParkingHistoryViewModel = viewModel()
-    if (user != null) {
-        val uid = user.uid
-        authViewModel.getUserRole{
-            role->
-            if(role == "user"){
-                startDestination = "home"
-            }else{
-                startDestination = "admin"
-        }}
-    } else {
-        startDestination = "login"
-    }
+
     NavHost(navController = navController, startDestination = startDestination) {
         composable("login") { DangNhapScreen(navController, authViewModel) }
         composable("logup") { DangKyScreen(navController, authViewModel)}
