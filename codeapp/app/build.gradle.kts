@@ -84,4 +84,24 @@ dependencies {
     // Debug tools
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation ("androidx.navigation:navigation-compose:2.8.9")
+
+    //firebase
+
+    implementation("com.google.firebase:firebase-auth")
+    //QR
+    implementation("com.google.zxing:core:3.5.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    //
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.4")
+
+    //Tải và hiển thị hình ảnh online
+    implementation(platform("androidx.compose:compose-bom:2025.05.00"))
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+
 }
