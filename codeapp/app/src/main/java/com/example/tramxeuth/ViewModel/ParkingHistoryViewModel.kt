@@ -28,8 +28,9 @@ class ParkingHistoryViewModel: ViewModel() {
             try {
                 val result = db.collection("lichsuhoatdong").get().await()
                 val matchedHistory = mutableListOf<ParkingRecord>()
-
+                Log.d("Firestore", "Số lượng tài liệu: ${result.documents.size}")
                 for (document in result.documents) {
+                    Log.d("Firestore", "Document ID: ${document.id}")
                     val date = document.id
                     val xeSnapshot = document.reference.collection("xe").get().await()
 

@@ -1,5 +1,6 @@
 package com.example.tramxeuth.View
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -147,10 +148,12 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
         if (user?.biensophu == null) {
             ThemXePhuButton(userViewModel = userViewModel)
         }
-
         Button(
             onClick = {
-                navController.navigate("parkingHistory/123123")
+                if (user != null) {
+                    navController.navigate("parkingHistory/${user.biensoxe}")
+                    Log.d("biensoxe", user.biensoxe)
+                }
             },
             modifier = Modifier.align(Alignment.BottomStart)
         ) {
