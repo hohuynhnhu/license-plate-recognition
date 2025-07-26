@@ -1,5 +1,15 @@
 package com.example.tramxeuth.View
 
+import android.Manifest
+import android.app.Activity
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +45,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,11 +65,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import com.google.zxing.integration.android.IntentIntegrator
 
-    @Composable
+@Composable
     fun SignForm(title: String, navController: NavController, viewModel: AuthViewModel){
         var email by remember { mutableStateOf("") }
         var hovaten by remember { mutableStateOf("") }
@@ -112,7 +134,8 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
                     itemSection("Họ và tên", Icons.Default.PermIdentity, hovaten, {hovaten = it})
                     itemSection("CCCD", Icons.Default.School, cccd, {cccd = it})
                     itemSection("Biển số xe", icon = null, biensoxe, {biensoxe = it})
-                }}
+                    }
+                }
                 item {itemSection("Mật khẩu", Icons.Default.Lock, password, {password = it})}
                 item {Spacer(modifier = Modifier.height(5.dp))}
                 item {
@@ -223,5 +246,3 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
-
-

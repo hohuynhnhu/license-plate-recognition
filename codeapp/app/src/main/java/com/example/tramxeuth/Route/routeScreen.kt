@@ -1,5 +1,6 @@
 package com.example.tramxeuth.Route
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -10,7 +11,6 @@ import com.example.tramxeuth.View.AdminHomeScreen
 import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
-import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -48,14 +48,8 @@ fun routeScreen(
         composable("detail_parkingHistory/{date}") { backStackEntry ->
             val date = backStackEntry.arguments?.getString("date")
             if (date != null) {
-                DetailParkingScreen(parkingHistoryViewModel, date)
+                DetailParkingScreen(parkingHistoryViewModel, date, navController)
             }
-        }
-        composable("lichsuyeucaubv/{cccd}") {backStackEntry ->
-            val cccd = backStackEntry.arguments?.getString("cccd") ?: ""
-            LichSuYCScreen(cccd = cccd, navController)
-
-
         }
     }
 }
