@@ -112,7 +112,13 @@ class UserRepository(
         if (currentBienSoPhu.bienSo != bienSo) return false
 
         //  Lấy createdAt từ Realtime Database (nếu có)
-        val createdAt = getCarTimestamp(bienSo) ?: System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        var createdAt = getCarTimestamp(bienSo) ?: now
+
+        // Nếu createdAt < thời gian hiện tại thì dùng now để đảm bảo không gia hạn từ quá khứ
+        if (createdAt < now) {
+            createdAt = now
+        }
 
         val newExpiry: Long = when {
             gioiHanGio != null -> createdAt + gioiHanGio * 60 * 60 * 1000
