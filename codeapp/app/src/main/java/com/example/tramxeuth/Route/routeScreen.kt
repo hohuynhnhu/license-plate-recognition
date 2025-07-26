@@ -1,5 +1,6 @@
 package com.example.tramxeuth.Route
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,6 +12,8 @@ import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
+import com.example.tramxeuth.View.QrScannerPermissionWrapper
+import com.example.tramxeuth.View.QrScannerScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
 import com.example.tramxeuth.ViewModel.AuthViewModel
@@ -56,8 +59,16 @@ fun routeScreen(authViewModel: AuthViewModel, userViewModel: UserViewModel, fire
         composable("detail_parkingHistory/{date}") { backStackEntry ->
             val date = backStackEntry.arguments?.getString("date")
             if (date != null) {
-                DetailParkingScreen(parkingHistoryViewModel, date)
+                DetailParkingScreen(parkingHistoryViewModel, date, navController)
             }
         }
+        composable("quetQR") {
+            QrScannerPermissionWrapper {
+                QrScannerScreen { result ->
+                    Log.d("QR", result)
+                }
+            }
+        }
+
     }
 }
