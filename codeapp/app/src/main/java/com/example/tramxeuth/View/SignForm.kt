@@ -1,5 +1,14 @@
 package com.example.tramxeuth.View
 
+import android.Manifest
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +44,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,11 +64,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 
-    @Composable
+@Composable
     fun SignForm(title: String, navController: NavController, viewModel: AuthViewModel){
         var email by remember { mutableStateOf("") }
         var hovaten by remember { mutableStateOf("") }
@@ -112,7 +132,11 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
                     itemSection("Họ và tên", Icons.Default.PermIdentity, hovaten, {hovaten = it})
                     itemSection("CCCD", Icons.Default.School, cccd, {cccd = it})
                     itemSection("Biển số xe", icon = null, biensoxe, {biensoxe = it})
-                }}
+                    }
+                }
+                item{ Text(text = "Quét QR", modifier = Modifier.clickable {
+                    navController.navigate("quetQR")
+                }) }
                 item {itemSection("Mật khẩu", Icons.Default.Lock, password, {password = it})}
                 item {Spacer(modifier = Modifier.height(5.dp))}
                 item {
@@ -224,4 +248,78 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
         }
     }
 
+@OptIn(ExperimentalGetImage::class)
+@Composable
+fun QrScannerScreen(onQrCodeScanned: (String) -> Unit) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val barcodeScanner = BarcodeScanning.getClient()
 
+    val previewView = remember { PreviewView(context) }
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+
+    AndroidView(factory = {
+        previewView
+    }, modifier = Modifier.fillMaxSize())
+
+    LaunchedEffect(true) {
+        val cameraProvider = cameraProviderFuture.get()
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(previewView.surfaceProvider)
+        }
+
+        val analysis = ImageAnalysis.Builder().build().also {
+            it.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                val mediaImage = imageProxy.image
+                if (mediaImage != null) {
+                    val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                    barcodeScanner.process(image)
+                        .addOnSuccessListener { barcodes ->
+                            for (barcode in barcodes) {
+                                barcode.rawValue?.let {
+                                    onQrCodeScanned(it)
+                                }
+                            }
+                        }
+                        .addOnCompleteListener {
+                            imageProxy.close()
+                        }
+                } else {
+                    imageProxy.close()
+                }
+            }
+        }
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+        cameraProvider.unbindAll()
+        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, analysis)
+    }
+}
+
+@kotlin.OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun QrScannerPermissionWrapper(
+    onGranted: @Composable () -> Unit
+) {
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
+    LaunchedEffect(Unit) {
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
+        }
+    }
+
+    when (cameraPermissionState.status) {
+        is PermissionStatus.Granted -> {
+            // 👉 Khi đã có quyền, hiển thị nội dung
+            onGranted()
+        }
+
+        is PermissionStatus.Denied -> {
+            // 👉 Khi bị từ chối, hiển thị thông báo
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Cần quyền Camera để quét mã QR.")
+            }
+        }
+    }
+}
