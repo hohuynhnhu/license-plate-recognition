@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.util.Log
 import androidx.annotation.OptIn
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,7 +65,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
-import com.google.zxing.integration.android.IntentIntegrator
 
 @Composable
     fun SignForm(title: String, navController: NavController, viewModel: AuthViewModel){
@@ -152,8 +150,8 @@ import com.google.zxing.integration.android.IntentIntegrator
                                     "user" -> navController.navigate("home")
                                     else -> navController.navigate("login")
                                 }
-                            }
-                        } else if (title == "Đăng ký"){
+                            }}
+                        else if (title == "Đăng ký"){
                             viewModel.register(email, password, {navController.navigate("login")}, hovaten, cccd, biensoxe)
                         }
                     },

@@ -23,7 +23,9 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tramxeuth.Model.NhanVien
+import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.NhanVienViewModel
+import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import org.json.JSONObject
@@ -33,7 +35,7 @@ import kotlin.math.log
 
 
 @Composable
-fun AdminHomeScreen(uid: String, navController: NavController) {
+fun AdminHomeScreen(uid: String, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
     val nhanVienViewModel: NhanVienViewModel = viewModel()
     val nhanVien = nhanVienViewModel.nhanVien
     val isPanelVisible = remember { mutableStateOf(false) }
@@ -71,10 +73,10 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                 }
 
                 Button(
-                    onClick = { isPanelVisible.value = !isPanelVisible.value },
+                    onClick = { isPanelVisible.value = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
                 ) {
-                    Text(if (isPanelVisible.value) "Đóng ủy thác" else "Tạo ủy thác mở cổng")
+                    Text("Tạo ủy thác mở cổng")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -82,8 +84,16 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
                 ) {
                     Text("Lịch sử yêu cầu")
-                    Log.d("cccd",nhanVien.cccd)
                 }
+            }
+            Button(
+                onClick = { authViewModel.logout({
+                    userViewModel.clearUserData()
+                    navController.navigate("login")
+                }) },
+                modifier = Modifier.align(Alignment.BottomEnd)
+            ) {
+                Text("Đăng xuất")
             }
 
             AnimatedVisibility(
@@ -102,22 +112,38 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                         .padding(16.dp)
                         .align(Alignment.BottomCenter)
                 ) {
-                    UythacPanel(nhanVien = nhanVien)
+                    UythacPanel(nhanVien = nhanVien, { isPanelVisible.value = false })
                 }
+
             }
         } ?: CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }
 
 @Composable
-fun UythacPanel(nhanVien: NhanVien) {
+fun UythacPanel(
+    nhanVien: NhanVien,
+    onClosePanel: () -> Unit = {}
+    ) {
     val timeLimit = remember { mutableStateOf(1f) }
     val qrData = remember { mutableStateOf("") }
     val now = remember { LocalDateTime.now() }
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     Column {
-        Text("Yêu cầu mở cổng", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text("Yêu cầu mở cổng", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = { onClosePanel() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
+            ) {
+                Text("Đóng ủy thác")
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
         Text("Thời gian mở cổng: ${timeLimit.value.toInt()} giờ")
