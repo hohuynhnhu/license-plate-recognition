@@ -42,7 +42,6 @@ class AuthViewModel : ViewModel() {
                 if (task.isSuccessful) {
                     user = auth.currentUser
                     saveFcmTokenToFirestore()
-//                    onSuccess()
                     getUserRole{
                         role->
                         if(role != null){
