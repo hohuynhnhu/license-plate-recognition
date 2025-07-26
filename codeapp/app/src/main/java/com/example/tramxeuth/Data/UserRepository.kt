@@ -76,6 +76,24 @@ class UserRepository(
         }
     }
 
+    suspend fun getCarTimestamp(bienSo: String): Long? {
+        val snapshot = FirebaseDatabase.getInstance()
+            .getReference("biensotrongbai")
+            .child(bienSo)
+            .child("timestamp")
+            .get()
+            .await()
+
+        val timestampStr = snapshot.getValue(String::class.java)
+        return try {
+            // Parse từ chuỗi về millis
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            format.parse(timestampStr ?: "")?.time
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun giaHanBienSoPhu(bienSo: String): Boolean {
         val uid = auth.currentUser?.uid ?: return false
         val docRef = db.collection("thongtindangky").document(uid)
@@ -83,7 +101,6 @@ class UserRepository(
 
         val quyDinhDoc = quyDinhRef.documents.firstOrNull()
         val giaHanDuocPhep = quyDinhDoc?.getBoolean("giahan") ?: false
-
         if (!giaHanDuocPhep) return false
 
         val gioiHanGio = quyDinhDoc?.getLong("gioihangio")
@@ -92,34 +109,42 @@ class UserRepository(
         val snapshot = docRef.get().await()
         val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
         val currentBienSoPhu = userData.biensophu ?: return false
+        if (currentBienSoPhu.bienSo != bienSo) return false
 
-        if (currentBienSoPhu.bienSo == bienSo) {
-            val now = System.currentTimeMillis()
-            val newExpiry: Long = when {
-                gioiHanGio != null -> now + gioiHanGio * 60 * 60 * 1000
-                gioiHanNgay != null -> {
-                    // Đặt tới 23:59 của ngày được giới hạn
-                    val cal = Calendar.getInstance().apply {
-                        time = gioiHanNgay
-                        set(Calendar.HOUR_OF_DAY, 23)
-                        set(Calendar.MINUTE, 59)
-                        set(Calendar.SECOND, 59)
-                        set(Calendar.MILLISECOND, 0)
-                    }
-                    cal.timeInMillis
-                }
-                else -> return false // Không có dữ liệu giới hạn hợp lệ
+        //  Lấy createdAt từ Realtime Database (nếu có)
+        val createdAt = getCarTimestamp(bienSo) ?: System.currentTimeMillis()
+
+        val newExpiry: Long = when {
+            gioiHanGio != null -> createdAt + gioiHanGio * 60 * 60 * 1000
+            gioiHanNgay != null -> {
+                Calendar.getInstance().apply {
+                    time = gioiHanNgay
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                    set(Calendar.SECOND, 59)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
             }
-
-            val updated = currentBienSoPhu.copy(
-                createdAt = now,
-                ngayHetHan = newExpiry
-            )
-            docRef.update("biensophu", updated).await()
-            return true
+            else -> return false
         }
 
-        return false
+        val updated = currentBienSoPhu.copy(
+            createdAt = createdAt,
+            ngayHetHan = newExpiry
+        )
+        docRef.update("biensophu", updated).await()
+
+        // Cập nhật lên Realtime Database: timeExpired
+        val realtimeRef = FirebaseDatabase.getInstance()
+            .getReference("biensotrongbai")
+            .child(bienSo)
+            .child("timeExpired")
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val formattedExpiry = sdf.format(Date(newExpiry))
+
+        realtimeRef.setValue(formattedExpiry).await()
+        return true
     }
 
     suspend fun removeExpiredBienSoPhu(): Boolean {
