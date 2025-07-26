@@ -1,5 +1,4 @@
 package com.example.tramxeuth.Data
-
 import android.content.ContentValues.TAG
 import android.util.Log
 import com.example.tramxeuth.Model.thongtindangky
@@ -11,13 +10,12 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
-
 class
 CarRepository(
     private val database: FirebaseDatabase = Firebase.database
 ) {
     private val messagesRef = database.getReference("biensotrongbai")
-        // Hàm lắng nghe thay đổi từ Firebase
+        // Hàm lắng nghe thay đổi từ Realtime Database
     fun listenForTrangthaiChanges(bienSo:String, onChanged: (Boolean?) -> Unit) {
         messagesRef.child(bienSo).child("trangthai").addValueEventListener(object :
             ValueEventListener {
@@ -25,20 +23,17 @@ CarRepository(
                 val isActive = snapshot.getValue(Boolean::class.java)
                 onChanged(isActive)
             }
-
             override fun onCancelled(error: DatabaseError) {
                 Log.w(TAG, "Failed to read value of trangthai.", error.toException())
             }
         })
     }
-
     fun updateTrangThai(bienSo: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
         messagesRef.child(bienSo).child("trangthai").setValue(isActive)
             .addOnCompleteListener { task ->
                 onComplete(task.isSuccessful)
             }
     }
-
     fun listenForCanhbaoChanges(bienSo:String, onChanged: (Boolean?) -> Unit) {
         messagesRef.child(bienSo).child("canhbao").addValueEventListener(object :
             ValueEventListener {
@@ -51,7 +46,6 @@ CarRepository(
             }
         })
     }
-
     fun updateCanhbao(bienSo: String, isActive: Boolean, onComplete: (Boolean) -> Unit) {
         messagesRef.child(bienSo).child("canhbao").setValue(isActive)
             .addOnCompleteListener { task ->
