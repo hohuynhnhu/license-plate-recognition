@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tramxeuth.Data.GiaHanResult
 import com.example.tramxeuth.Data.UserRepository
 import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.Model.biensotrongbai
@@ -22,6 +21,9 @@ class UserViewModel: ViewModel() {
         private set
 
     var bienSoPhuOperationResult by mutableStateOf<Boolean?>(null) //biến hiển thị thông báo thành công/thất bại trên màn hình.
+        private set
+
+    var thongBaoXoaPhu by mutableStateOf<String?>(null)
         private set
 
     fun loadUserData() {
@@ -56,35 +58,40 @@ class UserViewModel: ViewModel() {
     }
     fun xoaBienSoPhu(bienSo: String) {
         viewModelScope.launch {
-            bienSoPhuOperationResult = null
-            val success = userRepository.xoaBienSoPhu(bienSo)
-            bienSoPhuOperationResult = success
-            if (success) {
-                loadUserData() // reload lại dữ liệu sau khi xóa
+            try {
+                val success = userRepository.xoaBienSoPhu(bienSo)
+                thongBaoXoaPhu = if (success) {
+                    loadUserData()
+                    "Xóa biển số lạ thành công"
+                } else {
+                    "Không thể xóa vì xe chưa rời khỏi bãi"
+                }
+            } catch (e: Exception) {
+                thongBaoXoaPhu = "Đã xảy ra lỗi: ${e.message}"
             }
         }
     }
+
     var giaHanMessage by mutableStateOf<String?>(null)
         private set
 
     fun giaHanBienSoPhu(bienSo: String) {
         viewModelScope.launch {
-            when (val result = userRepository.giaHanBienSoPhu(bienSo)) {
-                GiaHanResult.SUCCESS -> {
-                    giaHanMessage = "Gia hạn thành công"
-                    loadUserData()
-                }
-                GiaHanResult.ALREADY_EXTENDED -> {
-                    giaHanMessage = "Bạn đã gia hạn rồi"
-                }
-                GiaHanResult.ERROR -> {
-                    giaHanMessage = "Gia hạn thất bại"
-                }
+            val result = userRepository.giaHanBienSoPhu(bienSo)
+            if (result) {
+                giaHanMessage = "Gia hạn thành công"
+                loadUserData()
+            } else {
+                giaHanMessage = "Gia hạn thất bại"
             }
         }
     }
+
     fun clearGiaHanMessage() {
         giaHanMessage = null
+    }
+    fun clearThongBaoXoaPhu() {
+        thongBaoXoaPhu = null
     }
 
 }
