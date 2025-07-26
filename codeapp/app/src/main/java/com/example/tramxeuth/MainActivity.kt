@@ -10,13 +10,11 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tramxeuth.Route.routeScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
-import com.example.tramxeuth.View.ZXING_REQUEST_CODE
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.zxing.integration.android.IntentIntegrator
 
 class MainActivity : ComponentActivity() {
     private lateinit var authViewModel: AuthViewModel
@@ -27,19 +25,6 @@ class MainActivity : ComponentActivity() {
     private var routeFromNotification: String? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == ZXING_REQUEST_CODE) {
-            val result = IntentIntegrator.parseActivityResult(resultCode, data)
-            if (result != null) {
-                if (result.contents != null) {
-                    // 👉 Đây là mã QR quét được
-                    Log.d("QR", "QR Code: ${result.contents}")
-                    // Gửi về Compose nếu cần
-                } else {
-                    Toast.makeText(this, "Không quét được mã.", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
