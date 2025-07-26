@@ -9,7 +9,8 @@ data class TimeLine(
     val timeOut: String?,
     val timeIn: String?,
     val imageOut: String?,
-    val imageIn: String?,
+    val hinhdauxevao
+    : String?,
 ){
     constructor() : this(null, null, null, null) // 👈 thêm constructor không tham số
 }

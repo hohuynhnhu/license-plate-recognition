@@ -22,6 +22,9 @@ class FirebaseViewModel() : ViewModel() {
     private val _isCanhbaoPhu = mutableStateOf<Boolean?>(null)
     val isCanhbaoPhu: State<Boolean?> get() = _isCanhbaoPhu
 
+    private val _timestamp = mutableStateOf<String?>(null)
+    val timestamp: State<String?> get() = _timestamp
+
     fun startListeningTrangthai(biensoxe: String) {
         // Lắng nghe sự thay đổi dữ liệu từ Firebase
         firebaseRepository.listenForTrangthaiChanges(biensoxe) { newIsActive ->
@@ -61,12 +64,6 @@ class FirebaseViewModel() : ViewModel() {
     fun startListeningTrangthaiPhu(biensophu: String) {
         firebaseRepository.listenForTrangthaiChanges(biensophu) { newIsActive ->
             _isTrangthaiPhu.value = newIsActive
-
-            if (newIsActive == true) {
-                // cập nhật thời gian hết hạn sau 24h từ thời điểm bắt đầu gửi
-                val ngayHetHan = System.currentTimeMillis() + 24 * 60 * 60 * 1000
-                updateNgayHetHanBienSoPhu(biensophu, ngayHetHan)
-            }
         }
     }
 
@@ -95,17 +92,4 @@ class FirebaseViewModel() : ViewModel() {
             }
         }
     }
-
-    fun updateNgayHetHanBienSoPhu(biensophu: String, ngayHetHan: Long) {
-        // Gọi repository để cập nhật
-        CarRepository().updateNgayHetHanBienSoPhu(biensophu, ngayHetHan) { success ->
-            if (success) {
-                Log.d("Firebase", "Cập nhật ngày hết hạn thành công")
-            } else {
-                Log.e("Firebase", "Cập nhật ngày hết hạn thất bại")
-            }
-        }
-    }
-
-
 }

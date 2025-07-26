@@ -23,7 +23,9 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tramxeuth.Model.NhanVien
+import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.NhanVienViewModel
+import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import org.json.JSONObject
@@ -33,7 +35,7 @@ import kotlin.math.log
 
 
 @Composable
-fun AdminHomeScreen(uid: String, navController: NavController) {
+fun AdminHomeScreen(uid: String, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
     val nhanVienViewModel: NhanVienViewModel = viewModel()
     val nhanVien = nhanVienViewModel.nhanVien
     val isPanelVisible = remember { mutableStateOf(false) }
@@ -84,6 +86,15 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                     Text("Lịch sử yêu cầu")
                 }
             }
+            Button(
+                onClick = { authViewModel.logout({
+                    userViewModel.clearUserData()
+                    navController.navigate("login")
+                }) },
+                modifier = Modifier.align(Alignment.BottomEnd)
+            ) {
+                Text("Đăng xuất")
+            }
 
             AnimatedVisibility(
                 visible = isPanelVisible.value,
@@ -103,6 +114,7 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                 ) {
                     UythacPanel(nhanVien = nhanVien, { isPanelVisible.value = false })
                 }
+
             }
         } ?: CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }

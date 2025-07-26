@@ -52,28 +52,20 @@ CarRepository(
                 onComplete(task.isSuccessful)
             }
     }
-    fun updateNgayHetHanBienSoPhu(biensophu: String, ngayHetHan: Long, onComplete: (Boolean) -> Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(false)
-        val db = FirebaseFirestore.getInstance()
-        val docRef = db.collection("thongtindangky").document(uid)
-        docRef.get().addOnSuccessListener { snapshot ->
-            val data = snapshot.toObject(thongtindangky::class.java)
-            val currentPhu = data?.biensophu
-            if (currentPhu?.bienSo == biensophu) {
-                val updated = currentPhu.copy(
-                    ngayHetHan = ngayHetHan,
-                    createdAt = System.currentTimeMillis(),
-                )
-                docRef.update("biensophu", updated).addOnSuccessListener {
-                    onComplete(true)
-                }.addOnFailureListener {
-                    onComplete(false)
-                }
-            } else {
-                onComplete(false)
+
+    fun getTimeExpired(bienSo: String, onResult: (String?) -> Unit) {
+        val timestampRef = messagesRef.child(bienSo).child("timeExpired")
+
+        timestampRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val timeExpired = snapshot.getValue(String::class.java)
+                onResult(timeExpired)
             }
-        }.addOnFailureListener {
-            onComplete(false)
-        }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to read timestamp.", error.toException())
+                onResult(null)
+            }
+        })
     }
 }

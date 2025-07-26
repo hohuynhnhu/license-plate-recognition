@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.TagFaces
@@ -81,7 +83,6 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
                 firebaseViewModel.startListeningCanhbaoPhu(bienSoPhu)
             }
         }
-
     }
     Box(
         modifier = Modifier.fillMaxSize()
@@ -212,11 +213,19 @@ fun topLayout(navController: NavController, ten: String?) {
             }
 
         }
-        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
+//        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
+//            Icon(
+//                imageVector = Icons.Default.TagFaces,
+//                contentDescription = "",
+//                modifier = Modifier.size(50.dp),
+//                tint = Color(0xFFFFC107)
+//            )
+//        }
+        IconButton(onClick = { navController.navigate("regulation") }) {
             Icon(
-                imageVector = Icons.Default.TagFaces,
+                imageVector = Icons.Default.Quiz,
                 contentDescription = "",
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(40.dp),
                 tint = Color(0xFFFFC107)
             )
         }
@@ -248,7 +257,7 @@ fun thongtinsinhvien(email: String?, name: String?, cccd: String?) {
         ) {
             itemThongtin(Icons.Default.Email, "Email", email)
             itemThongtin(Icons.Default.PermIdentity, "Họ và tên", name)
-            itemThongtin(Icons.Default.School, "cccd", cccd)
+            itemThongtin(Icons.Default.School, "CCCD", cccd)
 
         }
     }
@@ -326,14 +335,6 @@ fun thongtinxePhu(
     firebaseViewModel: FirebaseViewModel,
     userViewModel: UserViewModel)
 {
-    val ngayHetHanMillis = remember(ngayHetHan) {
-        try {
-            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            format.parse(ngayHetHan)?.time
-        } catch (e: Exception) {
-            null
-        }
-    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -373,9 +374,7 @@ fun thongtinxePhu(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 buttonGiaHanPhu(
-                    isTrangThaiPhu = trangthaiPhu,
                     bienSoPhu = biensophu,
-                    ngayHetHanStr = ngayHetHan,
                     userViewModel = userViewModel
                 )
                 buttonDeletePhu(biensophu, userViewModel)
@@ -495,15 +494,27 @@ fun ThemXePhuButton(userViewModel: UserViewModel) {
 @Composable
 fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
     var showDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val thongBao = userViewModel.thongBaoXoaPhu
+    LaunchedEffect(thongBao) {
+        thongBao?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            userViewModel.clearThongBaoXoaPhu()
+        }
+    }
+
     Button(
         onClick = {
-            showDialog = true
+            if (!biensophu.isNullOrBlank()) {
+                showDialog = true
+            } else {
+                Toast.makeText(context, "Biển số lạ không hợp lệ", Toast.LENGTH_SHORT).show()
+            }
         },
         contentPadding = PaddingValues(0.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Red
-        ),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
         modifier = Modifier
             .width(130.dp)
             .height(55.dp)
@@ -511,22 +522,17 @@ fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Xoá",
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontSize = 21.sp
-            )
+            Text("Xoá", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 21.sp)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Xoá biển số phụ",
-                modifier = Modifier
-                    .size(28.dp),
-                tint = Color.White,
+                modifier = Modifier.size(28.dp),
+                tint = Color.White
             )
         }
     }
+
     if (showDialog) {
         ConfirmDeleteDialog(
             biensophu = biensophu,
@@ -535,11 +541,10 @@ fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
         )
     }
 }
+
 @Composable
 fun buttonGiaHanPhu(
-    isTrangThaiPhu: Boolean?,
     bienSoPhu: String?,
-    ngayHetHanStr: String?,
     userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
@@ -553,20 +558,7 @@ fun buttonGiaHanPhu(
         }
     }
 
-    // Tính toán thời gian hết hạn từ chuỗi
-    val ngayHetHanMillis = try {
-        ngayHetHanStr?.let {
-            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            format.parse(it)?.time
-        }
-    } catch (e: Exception) {
-        null
-    }
-
-    val currentTime = System.currentTimeMillis()
-    val MILI_GIO = 60 * 60 * 1000
-    val thoiGianConLai = (ngayHetHanMillis ?: 0L) - currentTime
-    val isEnabled = isTrangThaiPhu == false && thoiGianConLai in 1..(12 * MILI_GIO)
+    val isEnabled = true
 
     Button(
         onClick = {

@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "929997693788",
+    "firebase_url": "https://tramxeuth-default-rtdb.firebaseio.com",
     "project_id": "tramxeuth",
     "storage_bucket": "tramxeuth.firebasestorage.app"
   },

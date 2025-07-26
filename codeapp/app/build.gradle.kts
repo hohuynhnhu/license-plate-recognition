@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
+    implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+    implementation("com.google.firebase:firebase-analytics")
 
     // Retrofit + Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
