@@ -1,5 +1,6 @@
 package com.example.tramxeuth.Route
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,7 +52,7 @@ fun routeScreen(
         composable("detail_parkingHistory/{date}") { backStackEntry ->
             val date = backStackEntry.arguments?.getString("date")
             if (date != null) {
-                DetailParkingScreen(parkingHistoryViewModel, date)
+                DetailParkingScreen(parkingHistoryViewModel, date, navController)
             }
         }
     }

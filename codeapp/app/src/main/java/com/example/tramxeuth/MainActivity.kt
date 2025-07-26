@@ -3,6 +3,7 @@ package com.example.tramxeuth
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
@@ -13,6 +14,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import com.example.tramxeuth.View.ParkingHistoryScreen
+//import com.example.tramxeuth.View.ZXING_REQUEST_CODE
+import com.example.tramxeuth.ViewModel.AuthViewModel
+import com.example.tramxeuth.ViewModel.FirebaseViewModel
+import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
+import com.example.tramxeuth.ViewModel.UserViewModel
+//import com.google.zxing.integration.android.IntentIntegrator
 
 class MainActivity : ComponentActivity() {
 
@@ -23,7 +31,23 @@ class MainActivity : ComponentActivity() {
     private lateinit var parkingHistoryViewModel: ParkingHistoryViewModel
 
     private var currentRoute: MutableState<String?> = mutableStateOf(null)
+    private var routeFromNotification: String? = null
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
+//        if (requestCode == ZXING_REQUEST_CODE) {
+//            val result = IntentIntegrator.parseActivityResult(resultCode, data)
+//            if (result != null) {
+//                if (result.contents != null) {
+//                    // 👉 Đây là mã QR quét được
+//                    Log.d("QR", "QR Code: ${result.contents}")
+//                    // Gửi về Compose nếu cần
+//                } else {
+//                    Toast.makeText(this, "Không quét được mã.", Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

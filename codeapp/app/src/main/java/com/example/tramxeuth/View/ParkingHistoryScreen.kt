@@ -60,21 +60,7 @@ fun ParkingHistoryScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding() // ✅ đẩy xuống khỏi vùng camera/notch
-                .padding(vertical = 12.dp), // ✅ nhỏ gọn lại
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Lịch sử gửi xe",
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                textAlign = TextAlign.Center
-            )
-        }
+        TopLayout(navHostController, "Lịch sử gửi xe")
 
         Column(
             modifier = Modifier
