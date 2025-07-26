@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.TagFaces
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -55,6 +56,7 @@ import androidx.navigation.NavController
 import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
+import com.example.tramxeuth.ViewModel.NotificationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -167,6 +169,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
 
 @Composable
 fun topLayout(navController: NavController, ten: String?) {
+    var notificationViewModel = NotificationViewModel()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,6 +208,14 @@ fun topLayout(navController: NavController, ten: String?) {
                 }
             }
 
+        }
+        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
+            Icon(
+                imageVector = Icons.Default.TagFaces,
+                contentDescription = "",
+                modifier = Modifier.size(50.dp),
+                tint = Color(0xFFFFC107)
+            )
         }
         IconButton(onClick = {navController.navigate("noti")}) {
             Icon(
