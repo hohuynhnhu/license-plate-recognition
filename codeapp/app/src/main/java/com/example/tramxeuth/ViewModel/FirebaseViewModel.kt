@@ -22,6 +22,9 @@ class FirebaseViewModel() : ViewModel() {
     private val _isCanhbaoPhu = mutableStateOf<Boolean?>(null)
     val isCanhbaoPhu: State<Boolean?> get() = _isCanhbaoPhu
 
+    private val _timestamp = mutableStateOf<String?>(null)
+    val timestamp: State<String?> get() = _timestamp
+
     fun startListeningTrangthai(biensoxe: String) {
         // Lắng nghe sự thay đổi dữ liệu từ Firebase
         firebaseRepository.listenForTrangthaiChanges(biensoxe) { newIsActive ->
