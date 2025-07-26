@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.TagFaces
@@ -209,11 +211,19 @@ fun topLayout(navController: NavController, ten: String?) {
             }
 
         }
-        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
+//        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
+//            Icon(
+//                imageVector = Icons.Default.TagFaces,
+//                contentDescription = "",
+//                modifier = Modifier.size(50.dp),
+//                tint = Color(0xFFFFC107)
+//            )
+//        }
+        IconButton(onClick = { navController.navigate("regulation") }) {
             Icon(
-                imageVector = Icons.Default.TagFaces,
+                imageVector = Icons.Default.Quiz,
                 contentDescription = "",
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(40.dp),
                 tint = Color(0xFFFFC107)
             )
         }

@@ -11,11 +11,13 @@ import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
+import com.example.tramxeuth.View.RegulationScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
+import com.example.tramxeuth.ViewModel.RegulationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 
@@ -25,6 +27,7 @@ fun routeScreen(
     authViewModel: AuthViewModel,
     userViewModel: UserViewModel,
     firebaseViewModel: FirebaseViewModel,
+    regulationViewModel: RegulationViewModel,
     parkingHistoryViewModel: ParkingHistoryViewModel
 ) {
     val navController = rememberNavController()
@@ -34,6 +37,7 @@ fun routeScreen(
         composable("logup") { DangKyScreen(navController, authViewModel)}
         composable("home") { homeScreen(navController, authViewModel, userViewModel, firebaseViewModel) }
         composable("noti") { ThongBaoScreen(navController) }
+        composable("regulation") { RegulationScreen(navController, regulationViewModel) }
         composable("admin") {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
             AdminHomeScreen(uid = uid, navController = navController)

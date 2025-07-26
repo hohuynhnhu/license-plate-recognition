@@ -140,8 +140,8 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
                                     "user" -> navController.navigate("home")
                                     else -> navController.navigate("login")
                                 }
-                            }}
-                        else if (title == "Đăng ký"){
+                            }
+                        } else if (title == "Đăng ký"){
                             viewModel.register(email, password, {navController.navigate("login")}, hovaten, cccd, biensoxe)
                         }
                     },
