@@ -59,31 +59,4 @@ CarRepository(
             }
     }
 
-    fun updateNgayHetHanBienSoPhu(biensophu: String, ngayHetHan: Long, onComplete: (Boolean) -> Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(false)
-        val db = FirebaseFirestore.getInstance()
-        val docRef = db.collection("thongtindangky").document(uid)
-
-        docRef.get().addOnSuccessListener { snapshot ->
-            val data = snapshot.toObject(thongtindangky::class.java)
-            val currentPhu = data?.biensophu
-
-            if (currentPhu?.bienSo == biensophu) {
-                val updated = currentPhu.copy(
-                    ngayHetHan = ngayHetHan,
-                    createdAt = System.currentTimeMillis(),
-                )
-                docRef.update("biensophu", updated).addOnSuccessListener {
-                    onComplete(true)
-                }.addOnFailureListener {
-                    onComplete(false)
-                }
-            } else {
-                onComplete(false)
-            }
-        }.addOnFailureListener {
-            onComplete(false)
-        }
-    }
-
 }

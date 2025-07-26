@@ -42,7 +42,7 @@ class AuthViewModel : ViewModel() {
                 if (task.isSuccessful) {
                     user = auth.currentUser
                     saveFcmTokenToFirestore()
-                    onSuccess()
+//                    onSuccess()
                     getUserRole{
                         role->
                         if(role != null){
@@ -73,7 +73,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    private fun saveUserToFirestore(ten: String, mssv: String, biensoxe: String) {
+    private fun saveUserToFirestore(ten: String, cccd: String, biensoxe: String) {
         val uid = auth.currentUser?.uid ?: return
         val db = FirebaseFirestore.getInstance()
 

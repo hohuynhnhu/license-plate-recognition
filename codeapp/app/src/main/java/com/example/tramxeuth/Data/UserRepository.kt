@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -45,72 +46,108 @@ class UserRepository(
     }
 
     suspend fun xoaBienSoPhu(bienSoCanXoa: String): Boolean {
+        return try {
+            val uid = auth.currentUser?.uid ?: return false
+            val docRef = db.collection("thongtindangky").document(uid)
+
+            val snapshot = docRef.get().await()
+            val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
+
+            val bienSoPhu = userData.biensophu ?: return false
+            if (bienSoPhu.bienSo != bienSoCanXoa) return false
+
+            val trangThaiRef = FirebaseDatabase.getInstance()
+                .getReference("biensotrongbai")
+                .child(bienSoCanXoa)
+                .child("trangthai")
+
+            val trangThaiSnapshot = trangThaiRef.get().await()
+            val trangThai = trangThaiSnapshot.getValue(String::class.java)
+
+            if (trangThai == null) {
+                docRef.update("biensophu", null).await()
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("Repo", "Lỗi khi xóa biển số phụ: ${e.message}", e)
+            false
+        }
+    }
+
+    suspend fun giaHanBienSoPhu(bienSo: String): Boolean {
         val uid = auth.currentUser?.uid ?: return false
         val docRef = db.collection("thongtindangky").document(uid)
+        val quyDinhRef = db.collection("quydinh").limit(1).get().await()
+
+        val quyDinhDoc = quyDinhRef.documents.firstOrNull()
+        val giaHanDuocPhep = quyDinhDoc?.getBoolean("giahan") ?: false
+
+        if (!giaHanDuocPhep) return false
+
+        val gioiHanGio = quyDinhDoc?.getLong("gioihangio")
+        val gioiHanNgay = quyDinhDoc?.getTimestamp("gioihanngay")?.toDate()
 
         val snapshot = docRef.get().await()
         val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
-
-        // Chỉ xóa nếu trùng biển
-        if (userData.biensophu?.bienSo == bienSoCanXoa) {
-            docRef.update("biensophu", null).await()
-        }
-
-        return true
-    }
-
-    suspend fun giaHanBienSoPhu(bienSo: String): GiaHanResult {
-        val uid = auth.currentUser?.uid ?: return GiaHanResult.ERROR
-        val docRef = db.collection("thongtindangky").document(uid)
-
-        val snapshot = docRef.get().await()
-        val userData = snapshot.toObject(thongtindangky::class.java) ?: return GiaHanResult.ERROR
-
-        val currentBienSoPhu = userData.biensophu ?: return GiaHanResult.ERROR
+        val currentBienSoPhu = userData.biensophu ?: return false
 
         if (currentBienSoPhu.bienSo == bienSo) {
             val now = System.currentTimeMillis()
-
-            val thoiGianConLai = (currentBienSoPhu.ngayHetHan ?: 0L) - now
-            val MILI_GIO = 60 * 60 * 1000
-
-            if (thoiGianConLai > 12 * MILI_GIO) {
-                return GiaHanResult.ALREADY_EXTENDED
+            val newExpiry: Long = when {
+                gioiHanGio != null -> now + gioiHanGio * 60 * 60 * 1000
+                gioiHanNgay != null -> {
+                    // Đặt tới 23:59 của ngày được giới hạn
+                    val cal = Calendar.getInstance().apply {
+                        time = gioiHanNgay
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    cal.timeInMillis
+                }
+                else -> return false // Không có dữ liệu giới hạn hợp lệ
             }
 
             val updated = currentBienSoPhu.copy(
                 createdAt = now,
-                ngayHetHan = now.plus(24 * 60 * 60 * 1000)
+                ngayHetHan = newExpiry
             )
             docRef.update("biensophu", updated).await()
-            return GiaHanResult.SUCCESS
+            return true
         }
 
-        return GiaHanResult.ERROR
+        return false
     }
 
     suspend fun removeExpiredBienSoPhu(): Boolean {
         val uid = auth.currentUser?.uid ?: return false
         val docRef = db.collection("thongtindangky").document(uid)
-
         val snapshot = docRef.get().await()
         val userData = snapshot.toObject(thongtindangky::class.java) ?: return false
         val bienSoPhu = userData.biensophu ?: return true
 
-        if (bienSoPhu.isExpired()) {
+        // Lấy dữ liệu từ collection quydinh
+        val quyDinhRef = db.collection("quydinh").limit(1).get().await()
+        val quyDinhDoc = quyDinhRef.documents.firstOrNull() ?: return true
+
+        val gioiHanGio = quyDinhDoc.getLong("gioihangio")
+        val gioiHanNgay = quyDinhDoc.getTimestamp("gioihanngay")?.toDate()
+
+        val now = System.currentTimeMillis()
+        val hetHan = when {
+            gioiHanGio != null -> bienSoPhu.ngayHetHan != null && now > bienSoPhu.ngayHetHan!!
+            gioiHanNgay != null -> bienSoPhu.ngayHetHan != null && now > bienSoPhu.ngayHetHan!!
+            else -> false // Không có giới hạn nào hợp lệ → không xóa
+        }
+
+        if (hetHan) {
             docRef.update("biensophu", null).await()
             return true
         }
 
         return false
     }
-    fun BienSoPhu.isExpired(): Boolean {
-        val now = System.currentTimeMillis()
-        return this.ngayHetHan != null && now > this.ngayHetHan!!
-    }
-}
-enum class GiaHanResult {
-    SUCCESS,
-    ALREADY_EXTENDED,
-    ERROR
 }
