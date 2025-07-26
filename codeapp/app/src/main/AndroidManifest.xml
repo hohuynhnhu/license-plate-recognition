@@ -35,7 +35,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name="com.example.tramxeuth.Data.MyFirebaseMessagingService"
+            android:name="com.example.tramxeuth.Firebase.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
