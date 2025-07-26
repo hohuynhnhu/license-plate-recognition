@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
+import com.example.tramxeuth.ViewModel.NotificationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import kotlinx.coroutines.delay
 
@@ -23,6 +24,7 @@ fun CanhBaoDialog(firebaseViewModel: FirebaseViewModel, biensoxe: String) {
     val isCanhbao = firebaseViewModel.isCanhbao.value // hoặc .value nếu là State<Boolean>
     var showDialog by remember { mutableStateOf(false) }
     var thoigian by remember { mutableStateOf(10) }
+    var notificationViewModel = NotificationViewModel()
 
     LaunchedEffect(isCanhbao) {
         if (isCanhbao == true) {
