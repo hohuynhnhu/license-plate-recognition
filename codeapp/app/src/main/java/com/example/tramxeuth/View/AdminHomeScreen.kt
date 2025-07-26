@@ -1,6 +1,7 @@
 package com.example.tramxeuth.View
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tramxeuth.Model.NhanVien
@@ -27,6 +29,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import org.json.JSONObject
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
+import kotlin.math.log
 
 
 @Composable
@@ -73,12 +76,23 @@ fun AdminHomeScreen(uid: String, navController: NavController) {
                 ) {
                     Text(if (isPanelVisible.value) "Đóng ủy thác" else "Tạo ủy thác mở cổng")
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { navController.navigate("lichsuyeucaubv/${nhanVien.cccd}") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
+                ) {
+                    Text("Lịch sử yêu cầu")
+                    Log.d("cccd",nhanVien.cccd)
+                }
             }
 
             AnimatedVisibility(
                 visible = isPanelVisible.value,
                 enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
+                exit = slideOutVertically(targetOffsetY = { it }),
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .zIndex(0f)
+
             ) {
                 Box(
                     modifier = Modifier

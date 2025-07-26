@@ -4,5 +4,5 @@ data class NhanVien(
     val ten: String="",
     val email: String="",
     val cccd: String="",
-    val phone: String=""
+
 )

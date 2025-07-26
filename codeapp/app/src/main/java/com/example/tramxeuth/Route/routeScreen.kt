@@ -10,6 +10,7 @@ import com.example.tramxeuth.View.AdminHomeScreen
 import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
+import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -49,6 +50,12 @@ fun routeScreen(
             if (date != null) {
                 DetailParkingScreen(parkingHistoryViewModel, date)
             }
+        }
+        composable("lichsuyeucaubv/{cccd}") {backStackEntry ->
+            val cccd = backStackEntry.arguments?.getString("cccd") ?: ""
+            LichSuYCScreen(cccd = cccd, navController)
+
+
         }
     }
 }
