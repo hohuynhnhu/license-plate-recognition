@@ -11,6 +11,7 @@ import com.example.tramxeuth.View.AdminHomeScreen
 import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
+import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -39,10 +40,18 @@ fun routeScreen(
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
             AdminHomeScreen(uid = uid, navController = navController)
         }
+        composable("lichsuyeucaubv/{cccd}") {backStackEntry ->
+            val cccd = backStackEntry.arguments?.getString("cccd")
+            if (cccd != null) {
+                LichSuYCScreen(cccd,navController)
+                Log.d("cccd", cccd)
+            }
+        }
         composable("parkingHistory/{biensoxe}") { backStackEntry ->
             val biensoxe = backStackEntry.arguments?.getString("biensoxe")
             if (biensoxe != null) {
                 ParkingHistoryScreen(navController,parkingHistoryViewModel, biensoxe)
+                Log.d("biensoxe", biensoxe)
             }
         }
         composable("detail_parkingHistory/{date}") { backStackEntry ->

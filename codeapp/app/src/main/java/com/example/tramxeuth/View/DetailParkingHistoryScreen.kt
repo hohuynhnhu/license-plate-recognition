@@ -164,7 +164,7 @@ fun TopLayout(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowLeft,
                 contentDescription = "Quay lại",
-                tint = Color.White,
+                tint = Color.Black,
                 modifier = Modifier.size(40.dp)
             )
         }
@@ -173,7 +173,7 @@ fun TopLayout(
             text = title,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.Black
         )
     }
 }

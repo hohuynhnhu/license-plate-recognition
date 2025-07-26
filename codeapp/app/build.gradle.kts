@@ -93,6 +93,8 @@ dependencies {
 
     implementation("com.google.firebase:firebase-auth")
     //QR
+    implementation("com.google.zxing:core:3.5.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     //
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.4")
 
