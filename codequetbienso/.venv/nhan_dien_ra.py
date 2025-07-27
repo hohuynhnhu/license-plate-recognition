@@ -4,7 +4,6 @@ from ultralytics import YOLO
 import winsound
 import easyocr
 
-
 import re
 import time
 
@@ -24,9 +23,10 @@ def fix_common_ocr_mistakes(text):
 
 
 def detect_license_plate():
-    model = YOLO("D:/giaothong/license-plate-recognition/.venv/runs/detect/train/weights/best.pt")
-    cap = cv2.VideoCapture(0)
+    model = YOLO("D:/TramRaVao/metricLearning/.venv/runs/detect/train/weights/best.pt")
 
+    cap = cv2.VideoCapture(0)
+    
     recognized_plates = []
     best_conf = 0
     best_frame = None
@@ -38,24 +38,26 @@ def detect_license_plate():
         if not ret:
             break
 
-        results = model(frame)
+        results = model(frame, device=0)
         for r in results:
             if r.boxes is None:
                 continue
             for box in r.boxes:
                 confidence = box.conf[0].item()
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                if confidence > 0.8:
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-                if confidence > best_conf:
-                    best_conf = confidence
-                    best_frame = frame.copy()
-                    best_plate = frame[y1:y2, x1:x2]
+                    if confidence > best_conf:
+                        best_conf = confidence
+                        best_frame = frame.copy()
+                        best_plate = frame[y1:y2, x1:x2]
 
         cv2.imshow("Nhan Dien Bien So", frame)
 
         current_time = time.time()
-        if best_conf > 0.8 and best_plate is not None and (current_time - last_ocr_time >= 15):
+        if best_conf > 0.7 and best_plate is not None and (current_time - last_ocr_time >= 15):
             last_ocr_time = current_time
 
             # Xử lý ảnh biển số
@@ -63,17 +65,20 @@ def detect_license_plate():
             plate_blur = cv2.GaussianBlur(plate_gray, (3, 3), 0)
             plate_sharp = cv2.addWeighted(plate_gray, 1.5, plate_blur, -0.5, 0)
             _, thresh = cv2.threshold(plate_sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-            cv2.imwrite(".venv/bien_so_xe.jpg", best_frame)
+            cv2.imwrite(".venv/bien_so_xe1.jpg", best_frame)
+            cv2.imwrite(".venv/bien_so_xe2.jpg", best_plate)
+            cv2.imwrite(".venv/bien_so_xe3.jpg", plate_gray)
+            cv2.imwrite(".venv/bien_so_xe4.jpg", plate_blur )
+            cv2.imwrite(".venv/bien_so_xe5.jpg", plate_sharp)
             cv2.imwrite(".venv/bien_so_xe_da_cat.jpg", thresh)
-            print("📸 Đã lưu ảnh biển số rõ nhất! (tự động sau 15s)")
+            print(" Đã lưu ảnh biển số rõ nhất! (tự động sau 15s)")
 
             winsound.Beep(1000, 500)
 
             # OCR
-            reader = easyocr.Reader(['en'], gpu=False)
+            reader = easyocr.Reader(['en'], gpu=True)
             ocr_results = reader.readtext(thresh, detail=0)
-            print("🧪 Kết quả OCR:", ocr_results)
+            print("Kết quả OCR:", ocr_results)
 
             processed_texts = []
             for text in ocr_results:
@@ -93,7 +98,7 @@ def detect_license_plate():
                 else:
                     full_plate = processed_texts[0]
 
-                print("✅ Biển số quét được:", full_plate)
+                print("Biển số quét được:", full_plate)
                 if 5 <= len(full_plate) <= 15:
                     recognized_plates.append(full_plate)
                     return full_plate
