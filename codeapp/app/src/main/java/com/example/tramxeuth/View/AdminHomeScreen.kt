@@ -166,7 +166,6 @@ fun UythacPanel(
                     put("email", nhanVien.email)
                     put("thoigian_batdau", now.format(formatter))
                     put("thoigian_ketthuc", endTime.format(formatter))
-                    put("ghichu", "Yêu cầu mở cổng được ủy thác cho nhân viên")
                 }
                 qrData.value = json.toString()
             },

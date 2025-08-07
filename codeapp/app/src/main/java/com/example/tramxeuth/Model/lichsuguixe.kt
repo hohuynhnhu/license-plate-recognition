@@ -13,10 +13,10 @@ data class TimeLine(
 ){
     constructor() : this(null, null, null, null) // 👈 thêm constructor không tham số
 }
-
 data class VehicleInfo(
     val totalIn: Int?,
     val totalOut: Int?,
     val licensePlate: String?,
     val timelines: List<TimeLine>? = emptyList()
 )
+
