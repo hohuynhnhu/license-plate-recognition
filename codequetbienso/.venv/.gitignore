@@ -1,5 +1,0 @@
-# created by virtualenv automatically
-*.env
-yolov8n.pt
-serviceAccountKey.json
-.venv/

@@ -1,4 +1,5 @@
-.venv/serviceAccountKey.json
-.venv/serviceAccountKey.json
-.venv/serviceAccountKey.json
-.venv/serviceAccountKey.json
+# created by virtualenv automatically
+*.env
+yolov8n.pt
+serviceAccountKey.json
+.venv/
