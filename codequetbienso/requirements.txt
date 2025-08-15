@@ -1,5 +1,5 @@
 --extra-index-url https://download.pytorch.org/whl/cu118
-
+numpy==1.26.4
 opencv-python
 torch==2.1.0+cu118
 torchvision==0.16.0+cu118
@@ -11,4 +11,4 @@ cloudinary
 firebase-admin
 requests
 pytz
-
+pyzbar

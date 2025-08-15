@@ -45,7 +45,7 @@ def fix_common_ocr_mistakes(text):
 
 
 def detect_license_plate():
-    model = YOLO("D:/TramRaVao/metricLearning/.venv/runs/detect/train/weights/best.pt")
+    model = YOLO("runs/detect/train/weights/best.pt")
 
     cap = cv2.VideoCapture(0)
 
