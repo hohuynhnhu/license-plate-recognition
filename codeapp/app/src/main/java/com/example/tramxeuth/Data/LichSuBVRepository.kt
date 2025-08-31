@@ -10,7 +10,7 @@ class LichSuBVRepository(
 ) {
     fun getYeuCauByCCCD(cccd: String, onResult: (List<LichSuBV>) -> Unit) {
         db.collection("lichsuyeucau")
-            .whereEqualTo("cccd", cccd)
+            .whereEqualTo("CCCD", cccd)
             .get()
             .addOnSuccessListener { result ->
                 val yeuCauList = result.toObjects(LichSuBV::class.java)

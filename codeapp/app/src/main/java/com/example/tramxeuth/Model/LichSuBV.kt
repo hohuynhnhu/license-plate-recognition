@@ -1,8 +1,10 @@
 package com.example.tramxeuth.Model
 import com.google.firebase.Timestamp
 data class LichSuBV(
-    val cccd: String = "",
-    val email: String = "",
-    val name: String = "",
-    var timeRequest:Timestamp? = null
+    val CCCD: String = "",
+    val EMAIL: String = "",
+    val TEN: String = "",
+    val THOIGIAN_BATDAU: String = "",
+    val THOIGIAN_KETTHUC: String = "",
+    val approve: Boolean = false
 )
