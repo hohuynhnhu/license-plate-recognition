@@ -5,6 +5,7 @@ data class thongtindangky(
     var email: String="",
     var cccd: String="",
     var biensoxe: String="",
+    var luot: Int=0,
     var biensophu: BienSoPhu? = null
 )
 data class BienSoPhu(

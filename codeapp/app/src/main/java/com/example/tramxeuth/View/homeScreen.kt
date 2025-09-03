@@ -3,6 +3,7 @@ package com.example.tramxeuth.View
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Adjust
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Logout
@@ -28,9 +32,11 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PermIdentity
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.TagFaces
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -38,9 +44,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,12 +64,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.NotificationViewModel
+import com.example.tramxeuth.ViewModel.PaymentViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -68,8 +82,17 @@ import java.util.Locale
 @Composable
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
     val user = userViewModel.currentUser
+    val paymentViewModel: PaymentViewModel = viewModel()
+    val url by paymentViewModel.urlPayment.collectAsState()
+
     val isTrangthai = firebaseViewModel.isTrangthai.value
     val isTrangthaiPhu = firebaseViewModel.isTrangthaiPhu.value
+    LaunchedEffect(url) {
+        url?.let {
+            val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+            navController.navigate("payment_web/$encodedUrl")
+        }
+    }
 
     LaunchedEffect(user) {
         if (user == null)
@@ -84,8 +107,10 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             }
         }
     }
+
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(bottom = 30.dp)
     ) {
         Image(
@@ -105,7 +130,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             ),
             shape = RoundedCornerShape(0.dp)
         ) { 
-            topLayout(navController, user?.ten)
+            topLayout(navController, paymentViewModel, user?.ten, user?.luot)
         }
         Card(
             modifier = Modifier
@@ -172,13 +197,20 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
 }
 
 @Composable
-fun topLayout(navController: NavController, ten: String?) {
-    var notificationViewModel = NotificationViewModel()
+fun topLayout(
+    navController: NavController,
+    paymentViewModel: PaymentViewModel,
+    ten: String?,
+    luot: Int?
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedQuantity by remember { mutableStateOf(0) }
+    val cost = 5000
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 50.dp, horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Card(
@@ -213,14 +245,39 @@ fun topLayout(navController: NavController, ten: String?) {
             }
 
         }
-//        IconButton(onClick = { notificationViewModel.sendNotification("Đăng xuất") }) {
-//            Icon(
-//                imageVector = Icons.Default.TagFaces,
-//                contentDescription = "",
-//                modifier = Modifier.size(50.dp),
-//                tint = Color(0xFFFFC107)
-//            )
-//        }
+        Spacer(modifier = Modifier.width(5.dp))
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xB3FFFFFF)
+            )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.padding(horizontal = 7.dp, vertical = 7.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ConfirmationNumber,
+                    contentDescription = "",
+                    modifier = Modifier.size(25.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                luot?.let{
+                    Text(
+                        text = "Lượt: $luot",
+                        fontSize = 17.sp,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.AddCircle,
+                    contentDescription = "add",
+                    modifier = Modifier
+                        .size(17.dp)
+                        .clickable { showDialog = true }
+                )
+            }
+
+        }
         IconButton(onClick = { navController.navigate("regulation") }) {
             Icon(
                 imageVector = Icons.Default.Quiz,
@@ -238,6 +295,15 @@ fun topLayout(navController: NavController, ten: String?) {
             )
         }
     }
+    QuantityScreen(
+        showDialog = showDialog,
+        onDismiss = { showDialog = false },
+        onConfirm = {
+            qty -> selectedQuantity = qty
+            paymentViewModel.createPaymentUrl(selectedQuantity*cost, selectedQuantity)
+            Log.d("createPaymentUrl", "đang tạo PaymentUrl")
+        }
+    )
 }
 
 @Composable
@@ -596,4 +662,99 @@ fun buttonGiaHanPhu(
 fun Long.toDateString(): String {
     val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     return sdf.format(Date(this))
+}
+
+@Composable
+fun QuantityScreen(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var quantity by remember { mutableStateOf(1) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            title = { Text("Chọn số lượng") },
+            text = {
+                QuantityPicker(
+                    quantity = quantity,
+                    onQuantityChange = { newQty -> quantity = newQty }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onConfirm(quantity)
+                    onDismiss()
+                }) {
+                    Text("Xác nhận")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { onDismiss() }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun QuantityPicker(
+    quantity: Int,
+    onQuantityChange: (Int) -> Unit
+) {
+    var textValue by remember { mutableStateOf(quantity.toString()) }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Nút giảm
+        Icon(
+            imageVector = Icons.Default.RemoveCircle,
+            contentDescription = "Remove",
+            modifier = Modifier
+                .size(30.dp)
+                .clickable {
+                    if (quantity > 1) {
+                        val newQty = quantity - 1
+                        textValue = newQty.toString()
+                        onQuantityChange(newQty)
+                    }
+                }
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // TextField nhập trực tiếp
+        OutlinedTextField(
+            value = textValue,
+            onValueChange = { newText ->
+                textValue = newText
+                val newQty = newText.toIntOrNull()
+                if (newQty != null && newQty >= 1) {
+                    onQuantityChange(newQty)
+                }
+            },
+            singleLine = true,
+            modifier = Modifier.width(80.dp)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Nút tăng
+        Icon(
+            imageVector = Icons.Default.AddCircle,
+            contentDescription = "Add",
+            modifier = Modifier
+                .size(30.dp)
+                .clickable {
+                    val newQty = quantity + 1
+                    textValue = newQty.toString()
+                    onQuantityChange(newQty)
+                }
+        )
+    }
 }

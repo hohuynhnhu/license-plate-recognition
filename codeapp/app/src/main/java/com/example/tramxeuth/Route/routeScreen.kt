@@ -13,6 +13,7 @@ import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
 import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
+import com.example.tramxeuth.View.PaymentWebView
 import com.example.tramxeuth.View.RegulationScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -22,6 +23,7 @@ import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
 import com.example.tramxeuth.ViewModel.RegulationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun routeScreen(
@@ -62,6 +64,14 @@ fun routeScreen(
             val date = backStackEntry.arguments?.getString("date")
             if (date != null) {
                 DetailParkingScreen(parkingHistoryViewModel, date, navController)
+            }
+        }
+        composable("payment_web/{url}") { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("url")
+            val url = encodedUrl?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+
+            if (url != null) {
+                PaymentWebView(url, navController)
             }
         }
     }

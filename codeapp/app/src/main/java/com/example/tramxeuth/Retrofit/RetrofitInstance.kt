@@ -1,13 +1,14 @@
 package com.example.tramxeuth.Retrofit
 
 import com.example.tramxeuth.ApiService.NotificationApiService
+import com.example.tramxeuth.ApiService.PaymentApiService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.1.204:3000"
+    private const val BASE_URL = "http://192.168.1.45:3000"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
@@ -25,4 +26,5 @@ object RetrofitInstance {
     }
 
     val notificationApi: NotificationApiService by lazy { retrofit.create(NotificationApiService::class.java) }
+    val paymentApi: PaymentApiService by lazy { retrofit.create(PaymentApiService::class.java) }
 }
