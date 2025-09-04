@@ -125,7 +125,6 @@ class AuthViewModel : ViewModel() {
                     onResult(role)
                 } else {
                     onResult(null)
-                    error = "Không tìm thấy role"
                 }
             }
             .addOnFailureListener { exception ->

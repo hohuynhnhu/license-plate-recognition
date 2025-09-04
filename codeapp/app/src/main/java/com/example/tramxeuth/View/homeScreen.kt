@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
@@ -41,6 +40,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,6 +79,16 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 
 @Composable
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
@@ -100,10 +111,12 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
         else{
             firebaseViewModel.startListeningTrangthai(user.biensoxe)
             firebaseViewModel.startListeningCanhbao(user.biensoxe)
+            firebaseViewModel.startListeningAutoLeave(user.biensoxe)
 
             user.biensophu?.bienSo?.let { bienSoPhu ->
                 firebaseViewModel.startListeningTrangthaiPhu(bienSoPhu)
                 firebaseViewModel.startListeningCanhbaoPhu(bienSoPhu)
+                firebaseViewModel.startListeningAutoLeavePhu(bienSoPhu)
             }
         }
     }
@@ -385,6 +398,12 @@ fun thongtinxe(biensoxe: String?, trangthai: Boolean?, firebaseViewModel: Fireba
         ) {
             itemThongtin(null,"Biển số xe", biensoxe)
             itemTrangthai("Trạng thái", trangthai)
+            // Auto leave checkbox
+            autoLeaveCheckboxMinimal(
+                firebaseViewModel = firebaseViewModel,
+                bienSo = biensoxe,
+                isPhu = false
+            )
             buttonLeave(
                 isTrangThai = trangthai,
                 firebaseViewModel = firebaseViewModel,
@@ -415,6 +434,12 @@ fun thongtinxePhu(
         ) {
             itemThongtin(null, "Biển số lạ", biensophu)
             itemTrangthai("Trạng thái", trangthaiPhu)
+            // Auto leave checkbox for secondary car
+            autoLeaveCheckbox(
+                firebaseViewModel = firebaseViewModel,
+                bienSo = biensophu,
+                isPhu = true
+            )
             buttonLeave(
                 isTrangThai = trangthaiPhu,
                 firebaseViewModel = firebaseViewModel,
@@ -445,6 +470,187 @@ fun thongtinxePhu(
                 )
                 buttonDeletePhu(biensophu, userViewModel)
             }
+        }
+    }
+}
+
+@Composable
+fun autoLeaveCheckbox(
+    firebaseViewModel: FirebaseViewModel,
+    bienSo: String?,
+    isPhu: Boolean = false
+) {
+    val autoLeaveEnabled = if (isPhu) {
+        firebaseViewModel.autoLeaveEnabledPhu.value
+    } else {
+        firebaseViewModel.autoLeaveEnabled.value
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .border(
+                width = 1.dp,
+                color = Color(0xFFBBBBBB),
+                shape = RoundedCornerShape(8.dp),
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = if (autoLeaveEnabled) Color(0x1A4CAF50) else Color(0x1AFFFFFF)
+        ),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        bienSo?.let { bienSoValue ->
+                            if (isPhu) {
+                                firebaseViewModel.setAutoLeavePhu(bienSoValue, !autoLeaveEnabled)
+                            } else {
+                                firebaseViewModel.setAutoLeave(bienSoValue, !autoLeaveEnabled)
+                            }
+                        }
+                    }
+            ) {
+                Checkbox(
+                    checked = autoLeaveEnabled,
+                    onCheckedChange = { isChecked ->
+                        bienSo?.let { bienSoValue ->
+                            if (isPhu) {
+                                firebaseViewModel.setAutoLeavePhu(bienSoValue, isChecked)
+                            } else {
+                                firebaseViewModel.setAutoLeave(bienSoValue, isChecked)
+                            }
+                        }
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFF4CAF50),
+                        uncheckedColor = Color(0xFF999999),
+                        checkmarkColor = Color.White
+                    )
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tự động chuẩn bị rời",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF333333)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Status indicator
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = if (autoLeaveEnabled) Color(0xFF4CAF50) else Color(0xFFBDBDBD),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+
+                    // Always show description for better UX
+                    Text(
+                        text = if (autoLeaveEnabled) {
+                            "✓ Đang bật - Xe sẽ tự động chuyển sang trạng thái 'chuẩn bị rời'"
+                        } else {
+                            "Bật để tự động kích hoạt 'chuẩn bị rời' khi đỗ xe"
+                        },
+                        fontSize = 14.sp,
+                        color = if (autoLeaveEnabled) Color(0xFF4CAF50) else Color(0xFF777777),
+                        modifier = Modifier.padding(top = 4.dp),
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun autoLeaveCheckboxMinimal(
+    firebaseViewModel: FirebaseViewModel,
+    bienSo: String?,
+    isPhu: Boolean = false
+) {
+    val autoLeaveEnabled = if (isPhu) {
+        firebaseViewModel.autoLeaveEnabledPhu.value
+    } else {
+        firebaseViewModel.autoLeaveEnabled.value
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable {
+                bienSo?.let { bienSoValue ->
+                    if (isPhu) {
+                        firebaseViewModel.setAutoLeavePhu(bienSoValue, !autoLeaveEnabled)
+                    } else {
+                        firebaseViewModel.setAutoLeave(bienSoValue, !autoLeaveEnabled)
+                    }
+                }
+            }
+    ) {
+        Checkbox(
+            checked = autoLeaveEnabled,
+            onCheckedChange = { isChecked ->
+                bienSo?.let { bienSoValue ->
+                    if (isPhu) {
+                        firebaseViewModel.setAutoLeavePhu(bienSoValue, isChecked)
+                    } else {
+                        firebaseViewModel.setAutoLeave(bienSoValue, isChecked)
+                    }
+                }
+            },
+            colors = CheckboxDefaults.colors(
+                checkedColor = Color(0xFF4CAF50),
+                uncheckedColor = Color(0xFF999999),
+                checkmarkColor = Color.White
+            ),
+            modifier = Modifier.size(20.dp)
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Text(
+            text = "Tự động chuẩn bị rời",
+            fontSize = 17.sp,
+            fontWeight = if (autoLeaveEnabled) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (autoLeaveEnabled) Color(0xFF4CAF50) else Color(0xFF333333)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        if (autoLeaveEnabled) {
+            Text(
+                text = "BẬT",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier
+                    .background(
+                        Color(0x1A4CAF50),
+                        RoundedCornerShape(4.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            )
         }
     }
 }

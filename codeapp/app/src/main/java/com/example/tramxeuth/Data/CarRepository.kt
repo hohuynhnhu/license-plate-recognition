@@ -14,6 +14,26 @@ class
 CarRepository(
     private val database: FirebaseDatabase = Firebase.database
 ) {
+    // Auto leave functions
+    fun updateAutoLeave(bienSo: String, autoLeave: Boolean, onComplete: (Boolean) -> Unit) {
+        messagesRef.child(bienSo).child("autoLeave").setValue(autoLeave)
+            .addOnCompleteListener { task ->
+                onComplete(task.isSuccessful)
+            }
+    }
+
+    fun listenForAutoLeaveChanges(bienSo: String, onChanged: (Boolean?) -> Unit) {
+        messagesRef.child(bienSo).child("autoLeave").addValueEventListener(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val autoLeave = snapshot.getValue(Boolean::class.java)
+                onChanged(autoLeave)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.w("CarRepository", "Failed to read autoLeave value.", error.toException())
+            }
+        })
+    }
     private val messagesRef = database.getReference("biensotrongbai")
         // Hàm lắng nghe thay đổi từ Realtime Database
     fun listenForTrangthaiChanges(bienSo:String, onChanged: (Boolean?) -> Unit) {
