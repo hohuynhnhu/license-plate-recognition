@@ -129,6 +129,22 @@ class AuthViewModel : ViewModel() {
             }
             .addOnFailureListener { exception ->
                 onResult(null)
+            }
     }
-}
+    fun resetPassword(email: String, onResult: (Boolean, String?) -> Unit) {
+        if (email.isBlank()) {
+            onResult(false, "Vui lòng nhập email")
+            return
+        }
+
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true, "Email khôi phục mật khẩu đã được gửi đến $email")
+                } else {
+                    onResult(false, task.exception?.message)
+                }
+            }
+    }
+
 }
