@@ -45,8 +45,6 @@ class AuthViewModel : ViewModel() {
                     getUserRole{ role->
                         if(role != null){
                             onSuccess(role)
-                        }else{
-                            error = "Không tìm thấy role"
                         }
                     }
                 } else {
