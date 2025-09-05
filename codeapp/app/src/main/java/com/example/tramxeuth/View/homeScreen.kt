@@ -399,7 +399,7 @@ fun thongtinxe(biensoxe: String?, trangthai: Boolean?, firebaseViewModel: Fireba
             itemThongtin(null,"Biển số xe", biensoxe)
             itemTrangthai("Trạng thái", trangthai)
             // Auto leave checkbox
-            autoLeaveCheckboxMinimal(
+            autoLeaveCheckbox(
                 firebaseViewModel = firebaseViewModel,
                 bienSo = biensoxe,
                 isPhu = false
@@ -582,80 +582,6 @@ fun autoLeaveCheckbox(
 }
 
 @Composable
-fun autoLeaveCheckboxMinimal(
-    firebaseViewModel: FirebaseViewModel,
-    bienSo: String?,
-    isPhu: Boolean = false
-) {
-    val autoLeaveEnabled = if (isPhu) {
-        firebaseViewModel.autoLeaveEnabledPhu.value
-    } else {
-        firebaseViewModel.autoLeaveEnabled.value
-    }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable {
-                bienSo?.let { bienSoValue ->
-                    if (isPhu) {
-                        firebaseViewModel.setAutoLeavePhu(bienSoValue, !autoLeaveEnabled)
-                    } else {
-                        firebaseViewModel.setAutoLeave(bienSoValue, !autoLeaveEnabled)
-                    }
-                }
-            }
-    ) {
-        Checkbox(
-            checked = autoLeaveEnabled,
-            onCheckedChange = { isChecked ->
-                bienSo?.let { bienSoValue ->
-                    if (isPhu) {
-                        firebaseViewModel.setAutoLeavePhu(bienSoValue, isChecked)
-                    } else {
-                        firebaseViewModel.setAutoLeave(bienSoValue, isChecked)
-                    }
-                }
-            },
-            colors = CheckboxDefaults.colors(
-                checkedColor = Color(0xFF4CAF50),
-                uncheckedColor = Color(0xFF999999),
-                checkmarkColor = Color.White
-            ),
-            modifier = Modifier.size(20.dp)
-        )
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        Text(
-            text = "Tự động chuẩn bị rời",
-            fontSize = 17.sp,
-            fontWeight = if (autoLeaveEnabled) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (autoLeaveEnabled) Color(0xFF4CAF50) else Color(0xFF333333)
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        if (autoLeaveEnabled) {
-            Text(
-                text = "BẬT",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF4CAF50),
-                modifier = Modifier
-                    .background(
-                        Color(0x1A4CAF50),
-                        RoundedCornerShape(4.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            )
-        }
-    }
-}
-
-@Composable
 fun itemTrangthai(title: String, trangthai: Boolean?) {
     Row(
         verticalAlignment = Alignment.CenterVertically
@@ -748,7 +674,11 @@ fun ThemXePhuButton(userViewModel: UserViewModel) {
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
-        ThemXePhuDialog(userViewModel = userViewModel)
+        ThemXePhuDialog(
+            userViewModel = userViewModel,
+            showDialog = showDialog,
+            onDismiss = { showDialog = false }
+        )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

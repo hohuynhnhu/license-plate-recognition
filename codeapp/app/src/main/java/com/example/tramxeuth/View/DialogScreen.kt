@@ -1,5 +1,6 @@
 package com.example.tramxeuth.View
 
+import android.widget.Toast
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -11,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.tramxeuth.Model.BienSoPhu
@@ -134,14 +136,18 @@ fun CanhBaoPhuDialog(firebaseViewModel: FirebaseViewModel, biensophu: String) {
     }
 }
 @Composable
-fun ThemXePhuDialog(userViewModel: UserViewModel) {
-    var showDialog by remember { mutableStateOf(true) }
+fun ThemXePhuDialog(
+    userViewModel: UserViewModel,
+    showDialog: Boolean,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
     var bienSoPhuInput by remember { mutableStateOf("") }
 
     if (!showDialog) return
 
     AlertDialog(
-        onDismissRequest = { showDialog = false },
+        onDismissRequest = { onDismiss() },
         title = { Text("Thêm xe lạ", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
         text = {
             TextField(
@@ -154,21 +160,35 @@ fun ThemXePhuDialog(userViewModel: UserViewModel) {
         confirmButton = {
             TextButton(onClick = {
                 if (bienSoPhuInput.isNotBlank()) {
-                    userViewModel.themBienSoPhu(BienSoPhu(bienSoPhuInput.trim()))
-                    showDialog = false
+                    userViewModel.themBienSoPhu(BienSoPhu(bienSoPhuInput.trim())) { result ->
+                        when (result) {
+                            BienSoPhuResult.SUCCESS -> {
+                                Toast.makeText(context, "Thêm thành công", Toast.LENGTH_SHORT).show()
+                                onDismiss()
+                            }
+                            BienSoPhuResult.DUPLICATE -> {
+                                Toast.makeText(context, "Biển số đã tồn tại", Toast.LENGTH_SHORT).show()
+                            }
+                            BienSoPhuResult.FAIL -> {
+                                Toast.makeText(context, "Thêm thất bại", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
             }) {
                 Text("Xác nhận", fontSize = 18.sp)
             }
         },
         dismissButton = {
-            TextButton(onClick = { showDialog = false }) {
+            TextButton(onClick = { onDismiss() }) {
                 Text("Hủy", fontSize = 18.sp)
             }
         }
     )
 }
-
+enum class BienSoPhuResult {
+    SUCCESS, DUPLICATE, FAIL
+}
 @Composable
 fun ConfirmDeleteDialog(
     biensophu: String?,
