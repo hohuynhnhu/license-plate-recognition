@@ -5,8 +5,8 @@
 #include <ESP32Servo.h>
 
 // WiFi thông tin
-#define WIFI_SSID "Tram Sac Cafe FC"
-#define WIFI_PASSWORD "68686868"
+#define WIFI_SSID "50k nha"
+#define WIFI_PASSWORD "123456788"
 
 // Firebase thông tin
 #define FIREBASE_HOST "tramxeuth-default-rtdb.firebaseio.com"
@@ -24,7 +24,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // Servo
 Servo myServo;
 const int servoPin = 18;
-
+// Buzzer
+const int buzzerPin = 26;
 // Cờ trạng thái servo
 bool activeSG=false;
 
@@ -75,15 +76,15 @@ void setup() {
   // Servo
   myServo.attach(servoPin);
   myServo.write(angle);
-
   // Button + cảm biến rung
   pinMode(btn, INPUT_PULLUP);
   pinMode(sw, INPUT_PULLUP);
+  //loa
+  pinMode(buzzerPin, OUTPUT);
+  digitalWrite(buzzerPin, LOW);
 }
-
 void loop() {
   bool trangThai = false;
-
   // Đọc trạng thái cổng từ Firebase
   if (Firebase.getBool(fbTrangThai, "/trangthaicong")) {
     trangThai = fbTrangThai.boolData();
@@ -99,7 +100,6 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Cong dang mo");
       Serial.println("Mở cổng (servo 90)");
-
       // Đọc AutoOpen
       autoCloseEnabled = false;
       if (Firebase.getBool(fbdo, "/AutoOpen")) {
@@ -109,7 +109,6 @@ void loop() {
       } else {
         Serial.println("Lỗi đọc AutoOpen: " + fbdo.errorReason());
       }
-
       // Nếu bật AutoOpen thì bắt đầu đếm thời gian
       if (autoCloseEnabled) {
         moCongTime = millis();
@@ -117,14 +116,12 @@ void loop() {
       }
       activeSG = false;
     }
-
   } else {
     Serial.println("Lỗi đọc trạng thái cổng: " + fbdo.errorReason());
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Firebase Error");
   }
-
   // Kiểm tra đóng cổng sau 10s (non-blocking)
   if (dangMoCong && autoCloseEnabled) {
     if (millis() - moCongTime >= 10000) {
@@ -134,18 +131,15 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Cong da dong");
       Serial.println("Đóng cổng (servo 0)");
-
       // Cập nhật Firebase
       if (Firebase.setBool(fbdo, "/trangthaicong", false)) {
         Serial.println("Đã cập nhật trạng thái cổng thành FALSE");
       } else {
         Serial.println("Lỗi cập nhật trạng thái cổng: " + fbdo.errorReason());
       }
-
       dangMoCong = false;  // reset flag
     }
   }
-
   // Nút nhấn điều khiển servo (debounce bằng millis)
   bool btnState = digitalRead(btn);
   if (btnState == LOW && lastBtnState == HIGH && (millis() - lastDebounceTime > debounceDelay)) {
@@ -161,14 +155,17 @@ void loop() {
     activeSG = false;
   }
   lastBtnState = btnState;
-
   // kiểm tra rung
   bool shake = digitalRead(sw);
   if (!activeSG && shake == LOW && lastShake == HIGH) { // LOW = có rung nếu dùng INPUT_PULLUP
-    Serial.println("⚠️ Ngoại lực tác động vào servo!");
+    Serial.println("Ngoại lực tác động vào servo!");
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Ngoai luc tac dong");
+    // Buzzer cảnh báo
+    digitalWrite(buzzerPin, HIGH);
+    delay(3000);  // kêu 1 giây
+    digitalWrite(buzzerPin, LOW);
   }
   lastShake = shake;
 }
