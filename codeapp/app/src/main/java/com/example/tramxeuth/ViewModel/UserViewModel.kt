@@ -1,6 +1,8 @@
 package com.example.tramxeuth.ViewModel
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +12,7 @@ import com.example.tramxeuth.Data.UserRepository
 import com.example.tramxeuth.Model.BienSoPhu
 import com.example.tramxeuth.Model.biensotrongbai
 import com.example.tramxeuth.Model.thongtindangky
+import com.example.tramxeuth.View.BienSoPhuResult
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,15 +50,27 @@ class UserViewModel: ViewModel() {
         currentUser = null
     }
 
-    fun themBienSoPhu(bienSo: BienSoPhu) {
+    fun themBienSoPhu(
+        bienSo: BienSoPhu,
+        callback: (BienSoPhuResult) -> Unit
+    ) {
         viewModelScope.launch {
+            val isDuplicate = userRepository.isBienSoTrung(bienSo.bienSo)
+            if (isDuplicate) {
+                callback(BienSoPhuResult.DUPLICATE)
+                return@launch
+            }
+
             val success = userRepository.themBienSoPhu(bienSo)
-            bienSoPhuOperationResult = success
             if (success) {
-                loadUserData() // reload lại dữ liệu sau khi thêm
+                loadUserData()
+                callback(BienSoPhuResult.SUCCESS)
+            } else {
+                callback(BienSoPhuResult.FAIL)
             }
         }
     }
+
     fun xoaBienSoPhu(bienSo: String) {
         viewModelScope.launch {
             try {

@@ -104,5 +104,5 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2025.05.00"))
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt.coil3:coil-compose:3.2.0")
-
+    implementation ("com.github.skydoves:landscapist-glide:2.3.6")
 }

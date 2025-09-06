@@ -85,6 +85,13 @@ fun AdminHomeScreen(uid: String, navController: NavController, authViewModel: Au
                 ) {
                     Text("Lịch sử yêu cầu")
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { navController.navigate("lichsuhoatdong") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
+                ) {
+                    Text("Lịch sử yêu cầu")
+                }
             }
             Button(
                 onClick = { authViewModel.logout({

@@ -2,6 +2,8 @@ package com.example.tramxeuth.View
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
@@ -67,92 +69,115 @@ import com.example.tramxeuth.R
 import com.example.tramxeuth.ViewModel.AuthViewModel
 
 @Composable
-    fun SignForm(title: String, navController: NavController, viewModel: AuthViewModel){
-        var email by remember { mutableStateOf("") }
-        var hovaten by remember { mutableStateOf("") }
-        var cccd by remember { mutableStateOf("") }
-        var biensoxe by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-        Box(
+fun SignForm(title: String, navController: NavController, viewModel: AuthViewModel) {
+    var email by remember { mutableStateOf("") }
+    var hovaten by remember { mutableStateOf("") }
+    var cccd by remember { mutableStateOf("") }
+    var biensoxe by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var resetMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.bg_signform),
+            contentDescription = "",
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
+        )
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xCC003153)
+            ),
+            shape = RoundedCornerShape(0.dp)
+        ) {}
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 70.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.bg_signform),
+                painter = painterResource(id = R.drawable.logo_ngang_uth),
                 contentDescription = "",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Card(
-                modifier = Modifier.fillMaxSize(),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xCC003153)
-                ),
-                shape = RoundedCornerShape(0.dp)
-            ){}
-            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 70.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_ngang_uth),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .size(70.dp)
-                )
-            }
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 180.dp, start = 30.dp, end = 30.dp)
-            ) {
-                item { Text(
+                    .size(70.dp)
+            )
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 180.dp, start = 30.dp, end = 30.dp)
+        ) {
+            item {
+                Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,
                     modifier = Modifier.fillMaxWidth(),
                     color = Color(0xFFFFD700),
                     textAlign = TextAlign.Center
-                ) }
-                item { Spacer(modifier = Modifier.height(30.dp)) }
-                item {itemSection("Email", Icons.Default.Email, email, {email = it})}
-                item { if(title == "Đăng ký"){
-                    itemSection("Họ và tên", Icons.Default.PermIdentity, hovaten, {hovaten = it})
-                    itemSection("CCCD", Icons.Default.School, cccd, {cccd = it})
-                    itemSection("Biển số xe", icon = null, biensoxe, {biensoxe = it})
-                    }
+                )
+            }
+            item { Spacer(modifier = Modifier.height(30.dp)) }
+            item { itemSection("Email", Icons.Default.Email, email) { email = it } }
+            item {
+                if (title == "Đăng ký") {
+                    itemSection("Họ và tên", Icons.Default.PermIdentity, hovaten) { hovaten = it }
+                    itemSection("CCCD", Icons.Default.School, cccd) { cccd = it }
+                    itemSection("Biển số xe", icon = null, biensoxe) { biensoxe = it }
                 }
-                item {itemSection("Mật khẩu", Icons.Default.Lock, password, {password = it})}
-                item {Spacer(modifier = Modifier.height(5.dp))}
-                item {
+            }
+            item { itemSection("Mật khẩu", Icons.Default.Lock, password) { password = it } }
+            item {
+                if (title == "Đăng nhập") {
                     Text(
-                        text = if (title == "Đăng nhập") "Đăng ký" else "Đăng nhập",
+                        text = "Quên mật khẩu?",
                         textDecoration = TextDecoration.Underline,
-                        fontSize = 17.sp,
-                        color = Color(0xFF00AEFF),
-                        modifier = Modifier.clickable {
-                            if (title == "Đăng nhập")
-                                navController.navigate("logup")
-                            else
-                                navController.navigate("login")
-
-                        }
+                        fontSize = 16.sp,
+                        color = Color(0xFFFFA500),
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.resetPassword(email) { _, message ->
+                                    resetMessage = message
+                                }
+                            }
+                            .padding(top = 8.dp)
                     )
                 }
-                item {Spacer(modifier = Modifier.height(40.dp))}
-                item {Button(
+            }
+            item { Spacer(modifier = Modifier.height(5.dp)) }
+            item {
+                Text(
+                    text = if (title == "Đăng nhập") "Đăng ký" else "Đăng nhập",
+                    textDecoration = TextDecoration.Underline,
+                    fontSize = 17.sp,
+                    color = Color(0xFF00AEFF),
+                    modifier = Modifier.clickable {
+                        if (title == "Đăng nhập")
+                            navController.navigate("logup")
+                        else
+                            navController.navigate("login")
+                    }
+                )
+            }
+            item { Spacer(modifier = Modifier.height(40.dp)) }
+            item {
+                Button(
                     onClick = {
-                        if(title == "Đăng nhập"){
-                            viewModel.login(email, password) {role->
-                                when (role){
+                        if (title == "Đăng nhập") {
+                            viewModel.login(email, password) { role ->
+                                when (role) {
                                     "admin" -> navController.navigate("admin")
                                     "user" -> navController.navigate("home")
                                     else -> navController.navigate("login")
                                 }
-                            }}
-                        else if (title == "Đăng ký"){
-                            viewModel.register(email, password, {navController.navigate("login")}, hovaten, cccd, biensoxe)
+                            }
+                        } else if (title == "Đăng ký") {
+                            viewModel.register(email, password, { navController.navigate("login") }, hovaten, cccd, biensoxe)
                         }
                     },
                     shape = RoundedCornerShape(10.dp),
@@ -169,67 +194,98 @@ import com.example.tramxeuth.ViewModel.AuthViewModel
                         text = title,
                         fontSize = 20.sp
                     )
-                }}
-                item {viewModel.error?.let {
-                    Text(it, color = Color.Red)
-                }}
-                item {if (viewModel.loading) CircularProgressIndicator()}
-                item {Spacer(modifier = Modifier.height(40.dp))}
+                }
             }
-        }
-    }
-
-    @Composable
-    fun itemSection(title: String, icon: ImageVector?, content: String, onchange: (String) -> Unit){
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = "",
-                        tint = Color(0xFFB3FFF3),
+            item {
+                viewModel.error?.let {
+                    Text(it, color = Color.Red)
+                }
+            }
+            item {
+                resetMessage?.let {
+                    Text(
+                        text = it,
+                        color = Color.Yellow,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .clickable {
+                                try {
+                                    val intent = Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_EMAIL)
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    // Nếu không có app email chuyên dụng, fallback mở mailto:
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse("mailto:")
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            }
                     )
                 }
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
             }
-
-            Spacer(modifier = Modifier.height(7.dp))
-            var isPasswordVisible by remember { mutableStateOf(false) }
-            OutlinedTextField(
-                value = content,
-                onValueChange = onchange,
-                placeholder = { Text(title) },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xB3FFFFFF), shape = RoundedCornerShape(8.dp)),
-                visualTransformation =
-                if (title == "Mật khẩu") {
-                    if (isPasswordVisible)
-                        VisualTransformation.None
-                    else PasswordVisualTransformation()}
-                else VisualTransformation.None,
-                trailingIcon = {
-                    if (title == "Mật khẩu"){
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            item {
+                if (viewModel.loading) CircularProgressIndicator()
+            }
+            item { Spacer(modifier = Modifier.height(40.dp)) }
         }
     }
+}
+
+@Composable
+fun itemSection(title: String, icon: ImageVector?, content: String, onchange: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = "",
+                    tint = Color(0xFFB3FFF3),
+                )
+            }
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(7.dp))
+        var isPasswordVisible by remember { mutableStateOf(false) }
+        OutlinedTextField(
+            value = content,
+            onValueChange = onchange,
+            placeholder = { Text(title) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xB3FFFFFF), shape = RoundedCornerShape(8.dp)),
+            visualTransformation =
+            if (title == "Mật khẩu") {
+                if (isPasswordVisible)
+                    VisualTransformation.None
+                else PasswordVisualTransformation()
+            } else VisualTransformation.None,
+            trailingIcon = {
+                if (title == "Mật khẩu") {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Icon(
+                            imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}

@@ -8,11 +8,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tramxeuth.View.AdminHomeScreen
+import com.example.tramxeuth.View.ChiTietHoatDongScreen
+import com.example.tramxeuth.View.ChiTietTimelineScreen
+import com.example.tramxeuth.View.ChiTietXeScreen
 import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
 import com.example.tramxeuth.View.DetailParkingScreen
+import com.example.tramxeuth.View.LichSuHoatDongScreen
 import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
+import com.example.tramxeuth.View.PaymentWebView
 import com.example.tramxeuth.View.RegulationScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -22,6 +27,7 @@ import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
 import com.example.tramxeuth.ViewModel.RegulationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun routeScreen(
@@ -51,6 +57,26 @@ fun routeScreen(
                 Log.d("cccd", cccd)
             }
         }
+        composable("lichsuhoatdong") {
+            LichSuHoatDongScreen(navController)
+        }
+        composable("chitiet/{docId}") { backStackEntry ->
+            val docId = backStackEntry.arguments?.getString("docId") ?: ""
+            ChiTietHoatDongScreen(navController, docId)
+        }
+        composable("chitietxe/{ngayId}/{collection}/{xeId}") { backStackEntry ->
+            val ngayId = backStackEntry.arguments?.getString("ngayId") ?: ""
+            val collection = backStackEntry.arguments?.getString("collection") ?: "xe"
+            val xeId = backStackEntry.arguments?.getString("xeId") ?: ""
+            ChiTietXeScreen(navController, ngayId, collection, xeId)
+        }
+        composable("chitiettimeline/{ngayId}/{collection}/{xeId}/{timelineId}") { backStackEntry ->
+            val ngayId = backStackEntry.arguments?.getString("ngayId") ?: ""
+            val collection = backStackEntry.arguments?.getString("collection") ?: "xe"
+            val xeId = backStackEntry.arguments?.getString("xeId") ?: ""
+            val timelineId = backStackEntry.arguments?.getString("timelineId") ?: ""
+            ChiTietTimelineScreen(navController, ngayId, collection, xeId, timelineId)
+        }
         composable("parkingHistory/{biensoxe}") { backStackEntry ->
             val biensoxe = backStackEntry.arguments?.getString("biensoxe")
             if (biensoxe != null) {
@@ -62,6 +88,14 @@ fun routeScreen(
             val date = backStackEntry.arguments?.getString("date")
             if (date != null) {
                 DetailParkingScreen(parkingHistoryViewModel, date, navController)
+            }
+        }
+        composable("payment_web/{url}") { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("url")
+            val url = encodedUrl?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+
+            if (url != null) {
+                PaymentWebView(url, navController)
             }
         }
     }

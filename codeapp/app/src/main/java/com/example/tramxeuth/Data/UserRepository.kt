@@ -45,6 +45,20 @@ class UserRepository(
         return true
     }
 
+    suspend fun isBienSoTrung(bienSoMoi: String): Boolean {
+        val uid = auth.currentUser?.uid ?: return false
+        val doc = db.collection("thongtindangky").document(uid).get().await()
+        val userData = doc.toObject(thongtindangky::class.java) ?: return false
+
+        // Kiểm tra trùng với biển số chính
+        if (userData.biensoxe == bienSoMoi) return true
+
+        // Kiểm tra trùng với biển số phụ (nếu có)
+        if (userData.biensophu?.bienSo == bienSoMoi) return true
+
+        return false
+    }
+
     suspend fun xoaBienSoPhu(bienSoCanXoa: String): Boolean {
         return try {
             val uid = auth.currentUser?.uid ?: return false
