@@ -90,7 +90,7 @@ fun AdminHomeScreen(uid: String, navController: NavController, authViewModel: Au
                     onClick = { navController.navigate("lichsuhoatdong") },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00AEFF))
                 ) {
-                    Text("Lịch sử yêu cầu")
+                    Text("Lịch sử hoạt động bãi đỗ")
                 }
             }
             Button(
@@ -124,6 +124,7 @@ fun AdminHomeScreen(uid: String, navController: NavController, authViewModel: Au
 
             }
         } ?: CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        BaoRungDialog()
     }
 }
 

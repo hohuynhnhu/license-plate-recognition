@@ -13,8 +13,9 @@
 #define FIREBASE_AUTH "06uoSkZdrjmCGCHDntgeV7NHpCKKliS93SC6heUI"
 
 // Firebase và WiFi cấu hình
-FirebaseData fbTrangThai;
-FirebaseData fbdo;
+FirebaseData fbTrangThaiCong;
+FirebaseData fbAutoOpen;
+FirebaseData fbCanhBao;
 FirebaseAuth auth;
 FirebaseConfig config;
 
@@ -24,16 +25,20 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // Servo
 Servo myServo;
 const int servoPin = 18;
+
 // Buzzer
 const int buzzerPin = 26;
+bool baoDong = false;
+unsigned long timeBuzzer = 0;
+
 // Cờ trạng thái servo
-bool activeSG=false;
+bool activeSG = false;
 
 // Biến lưu góc servo
 int angle = 0;
 
 // Button điều khiển SG
-const int btn=25;
+const int btn = 25;
 bool lastBtnState = HIGH;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 200; // debounce 200ms
@@ -55,7 +60,7 @@ void setup() {
   Serial.print("Kết nối WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print("đang tìm .");
+    Serial.print(".");
   }
   Serial.println("\n WiFi OK");
 
@@ -64,7 +69,6 @@ void setup() {
   config.signer.tokens.legacy_token = FIREBASE_AUTH;
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
-  
 
   // LCD
   lcd.init();
@@ -76,18 +80,22 @@ void setup() {
   // Servo
   myServo.attach(servoPin);
   myServo.write(angle);
+
   // Button + cảm biến rung
   pinMode(btn, INPUT_PULLUP);
   pinMode(sw, INPUT_PULLUP);
-  //loa
+
+  // Buzzer
   pinMode(buzzerPin, OUTPUT);
   digitalWrite(buzzerPin, LOW);
 }
+
 void loop() {
   bool trangThai = false;
+
   // Đọc trạng thái cổng từ Firebase
-  if (Firebase.getBool(fbTrangThai, "/trangthaicong")) {
-    trangThai = fbTrangThai.boolData();
+  if (Firebase.getBool(fbTrangThaiCong, "/trangthaicong")) {
+    trangThai = fbTrangThaiCong.boolData();
     Serial.print("Trạng thái cổng: ");
     Serial.println(trangThai ? "Đang mở" : "Đang đóng");
 
@@ -100,15 +108,17 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Cong dang mo");
       Serial.println("Mở cổng (servo 90)");
+
       // Đọc AutoOpen
       autoCloseEnabled = false;
-      if (Firebase.getBool(fbdo, "/AutoOpen")) {
-        autoCloseEnabled = fbdo.boolData();
+      if (Firebase.getBool(fbAutoOpen, "/AutoOpen")) {
+        autoCloseEnabled = fbAutoOpen.boolData();
         Serial.print("AutoOpen: ");
         Serial.println(autoCloseEnabled);
       } else {
-        Serial.println("Lỗi đọc AutoOpen: " + fbdo.errorReason());
+        Serial.println("Lỗi đọc AutoOpen: " + fbAutoOpen.errorReason());
       }
+
       // Nếu bật AutoOpen thì bắt đầu đếm thời gian
       if (autoCloseEnabled) {
         moCongTime = millis();
@@ -117,11 +127,12 @@ void loop() {
       activeSG = false;
     }
   } else {
-    Serial.println("Lỗi đọc trạng thái cổng: " + fbdo.errorReason());
+    Serial.println("Lỗi đọc trạng thái cổng: " + fbTrangThaiCong.errorReason());
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Firebase Error");
   }
+
   // Kiểm tra đóng cổng sau 10s (non-blocking)
   if (dangMoCong && autoCloseEnabled) {
     if (millis() - moCongTime >= 10000) {
@@ -131,15 +142,17 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Cong da dong");
       Serial.println("Đóng cổng (servo 0)");
+
       // Cập nhật Firebase
-      if (Firebase.setBool(fbdo, "/trangthaicong", false)) {
+      if (Firebase.setBool(fbAutoOpen, "/trangthaicong", false)) {
         Serial.println("Đã cập nhật trạng thái cổng thành FALSE");
       } else {
-        Serial.println("Lỗi cập nhật trạng thái cổng: " + fbdo.errorReason());
+        Serial.println("Lỗi cập nhật trạng thái cổng: " + fbAutoOpen.errorReason());
       }
       dangMoCong = false;  // reset flag
     }
   }
+
   // Nút nhấn điều khiển servo (debounce bằng millis)
   bool btnState = digitalRead(btn);
   if (btnState == LOW && lastBtnState == HIGH && (millis() - lastDebounceTime > debounceDelay)) {
@@ -155,17 +168,35 @@ void loop() {
     activeSG = false;
   }
   lastBtnState = btnState;
+
   // kiểm tra rung
   bool shake = digitalRead(sw);
   if (!activeSG && shake == LOW && lastShake == HIGH) { // LOW = có rung nếu dùng INPUT_PULLUP
     Serial.println("Ngoại lực tác động vào servo!");
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Ngoai luc tac dong");
-    // Buzzer cảnh báo
-    digitalWrite(buzzerPin, HIGH);
-    delay(3000);  // kêu 1 giây
-    digitalWrite(buzzerPin, LOW);
+    lcd.print("CO TAC DONG");
+
+    // Buzzer cảnh báo non-blocking
+    baoDong = true;
+    timeBuzzer = millis();
+
+    // Gửi cảnh báo lên Firebase
+    if (Firebase.setBool(fbCanhBao, "/CanhBaoRung", true)) {
+      Serial.println("Đã gửi CanhBao = TRUE lên Firebase");
+    } else {
+      Serial.println("Lỗi gửi CanhBao: " + fbCanhBao.errorReason());
+    }
   }
   lastShake = shake;
+
+  // Xử lý buzzer không chặn loop
+  if (baoDong) {
+    if (millis() - timeBuzzer < 3000) {
+      digitalWrite(buzzerPin, HIGH);
+    } else {
+      digitalWrite(buzzerPin, LOW);
+      baoDong = false;
+    }
+  }
 }

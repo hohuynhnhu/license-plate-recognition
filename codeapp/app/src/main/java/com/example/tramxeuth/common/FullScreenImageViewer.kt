@@ -35,7 +35,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tramxeuth.ViewModel.ChiTietTimelineViewModel
 import com.google.firebase.firestore.FirebaseFirestore
-import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
