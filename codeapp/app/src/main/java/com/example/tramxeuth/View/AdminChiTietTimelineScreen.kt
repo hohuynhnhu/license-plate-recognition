@@ -67,9 +67,10 @@ fun ChiTietTimelineScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
         ) {
             when {
                 isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -85,11 +86,15 @@ fun ChiTietTimelineScreen(
                         Text("Không có dữ liệu", color = Color.Gray)
                     }
                 }
+
                 else -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        // Thời gian
                         item {
                             Text("⏰ Thời gian", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Spacer(Modifier.height(8.dp))
@@ -97,71 +102,169 @@ fun ChiTietTimelineScreen(
                             Text("Time Out: ${item.timeout ?: "-"}", fontSize = 18.sp)
                         }
 
-                        item {
-                            Text(" Biển số", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                            Spacer(Modifier.height(8.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                item.biensoxevao?.let {
-                                    AsyncImage(
-                                        model = it,
-                                        contentDescription = "Biển số vào",
-                                        modifier = Modifier
-                                            .size(150.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable { selectedImage = it },
-                                        contentScale = ContentScale.Crop
-                                    )
+                        when (collection) {
+                            "xeoto" -> {
+                                // Biển số
+                                item {
+                                    Text(" Biển số", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        item.biensoxevao?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Biển số vào",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item.biensoxera?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Biển số ra",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
                                 }
-                                item.biensoxera?.let {
-                                    AsyncImage(
-                                        model = it,
-                                        contentDescription = "Biển số ra",
-                                        modifier = Modifier
-                                            .size(150.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable { selectedImage = it },
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                                // Hiển thị ảnh phóng to
-                                ZoomableImage(imageUrl = selectedImage) {
-                                    selectedImage = null // Đóng dialog
-                                }
-                            }
-                        }
 
-                        item {
-                            Text(" Khuôn mặt", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                            Spacer(Modifier.height(8.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                item.khuonmatvao?.let {
-                                    AsyncImage(
-                                        model = it,
-                                        contentDescription = "Khuôn mặt vào",
-                                        modifier = Modifier
-                                            .size(150.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable { selectedImage = it },
-                                        contentScale = ContentScale.Crop,
-                                    )
+                                // Hình xe
+                                item {
+                                    Text(" Hình xe", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        item.hinhxevao?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Xe vào",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item.hinhxera?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Xe ra",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
                                 }
-                                item.khuonmatra?.let {
-                                    AsyncImage(
-                                        model = it,
-                                        contentDescription = "Khuôn mặt ra",
-                                        modifier = Modifier
-                                            .size(150.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable { selectedImage = it },
-                                        contentScale = ContentScale.Crop
-                                    )
+
+                                // Logo
+                                item {
+                                    Text("🏷 Logo", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        item.logovao?.forEach { url ->
+                                            AsyncImage(
+                                                model = url,
+                                                contentDescription = "Logo vào",
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = url },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item.logora?.forEach { url ->
+                                            AsyncImage(
+                                                model = url,
+                                                contentDescription = "Logo ra",
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = url },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
                                 }
-                                // Hiển thị ảnh phóng to
-                                ZoomableImage(imageUrl = selectedImage) {
-                                    selectedImage = null // Đóng dialog
+                            }
+
+                            "xe", "xemay" -> {
+                                // Biển số
+                                item {
+                                    Text("📌 Biển số", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        item.biensoxevao?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Biển số vào",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item.biensoxera?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Biển số ra",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Khuôn mặt
+                                item {
+                                    Text("🙂 Khuôn mặt", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        item.khuonmatvao?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Khuôn mặt vào",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item.khuonmatra?.let {
+                                            AsyncImage(
+                                                model = it,
+                                                contentDescription = "Khuôn mặt ra",
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable { selectedImage = it },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
+                    }
+
+                    // Hiển thị ảnh phóng to toàn màn hình
+                    ZoomableImage(imageUrl = selectedImage) {
+                        selectedImage = null
                     }
                 }
             }
