@@ -15,7 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tramxeuth.Model.BienSoPhu
+import com.example.tramxeuth.ViewModel.BaoRungViewModel
 import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.NotificationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
@@ -27,6 +29,8 @@ fun CanhBaoDialog(firebaseViewModel: FirebaseViewModel, biensoxe: String) {
     var showDialog by remember { mutableStateOf(false) }
     var thoigian by remember { mutableStateOf(10) }
     var notificationViewModel = NotificationViewModel()
+    var showBaoRung by remember { mutableStateOf(false) }
+    val baoRungViewModel: BaoRungViewModel = viewModel()
 
     LaunchedEffect(isCanhbao) {
         if (isCanhbao == true) {
@@ -73,6 +77,9 @@ fun CanhBaoDialog(firebaseViewModel: FirebaseViewModel, biensoxe: String) {
                 TextButton(onClick = {
                     showDialog = false
                     firebaseViewModel.updateCarCanhbao(biensoxe, false)
+                    // gọi BaoRung
+                    showBaoRung = true
+                    baoRungViewModel.updateCanhBaoRung(true)
                 }) {
                     Text("Không phải tôi (${thoigian}s)")
                 }
@@ -85,6 +92,8 @@ fun CanhBaoPhuDialog(firebaseViewModel: FirebaseViewModel, biensophu: String) {
     val isCanhbaoPhu = firebaseViewModel.isCanhbaoPhu.value
     var showDialog by remember { mutableStateOf(false) }
     var thoigian by remember { mutableStateOf(10) }
+    var showBaoRung by remember { mutableStateOf(false) }
+    val baoRungViewModel: BaoRungViewModel = viewModel()
 
     LaunchedEffect(isCanhbaoPhu) {
         if (isCanhbaoPhu == true) {
@@ -128,6 +137,9 @@ fun CanhBaoPhuDialog(firebaseViewModel: FirebaseViewModel, biensophu: String) {
                 TextButton(onClick = {
                     showDialog = false
                     firebaseViewModel.updateCarCanhbaoPhu(biensophu, false)
+                    //gọi BaoRung
+                    showBaoRung = true
+                    baoRungViewModel.updateCanhBaoRung(true)
                 }) {
                     Text("Không phải (${thoigian}s)")
                 }

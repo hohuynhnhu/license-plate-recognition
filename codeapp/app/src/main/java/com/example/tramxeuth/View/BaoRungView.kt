@@ -123,7 +123,7 @@ fun BaoRungDialog(
                         )
 
                         Text(
-                            text = "Có tác động bất thường ở trạm\nVui lòng xác nhận an toàn.",
+                            text = "Có hành vi bất thường ở trạm\nVui lòng xác nhận an toàn.",
                             fontSize = 16.sp,
                             color = Color.White,
                             lineHeight = 22.sp
