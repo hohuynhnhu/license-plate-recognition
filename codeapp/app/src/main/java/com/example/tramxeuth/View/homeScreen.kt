@@ -523,20 +523,8 @@ fun autoLeaveCheckbox(
                         bienSo?.let { bienSoValue ->
                             if (isPhu) {
                                 firebaseViewModel.setAutoLeavePhu(bienSoValue, isChecked)
-                                if (isChecked) {
-                                    // Chỉ ép về false nếu xe phụ đang ở trạng thái true
-                                    if (firebaseViewModel.isTrangthaiPhu.value == true) {
-                                        firebaseViewModel.updateCarTrangthaiPhu(bienSoValue, false)
-                                    }
-                                }
                             } else {
                                 firebaseViewModel.setAutoLeave(bienSoValue, isChecked)
-                                if (isChecked) {
-                                    // Chỉ ép về false nếu xe chính đang ở trạng thái true
-                                    if (firebaseViewModel.isTrangthai.value == true) {
-                                        firebaseViewModel.updateCarTrangthai(bienSoValue, false)
-                                    }
-                                }
                             }
                         }
                     },
