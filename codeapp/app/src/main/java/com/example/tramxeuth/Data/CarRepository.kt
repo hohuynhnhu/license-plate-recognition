@@ -10,8 +10,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
-class
-CarRepository(
+class CarRepository(
     private val database: FirebaseDatabase = Firebase.database
 ) {
     // Auto leave functions
@@ -73,19 +72,4 @@ CarRepository(
             }
     }
 
-    fun getTimeExpired(bienSo: String, onResult: (String?) -> Unit) {
-        val timestampRef = messagesRef.child(bienSo).child("timeExpired")
-
-        timestampRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val timeExpired = snapshot.getValue(String::class.java)
-                onResult(timeExpired)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Failed to read timestamp.", error.toException())
-                onResult(null)
-            }
-        })
-    }
 }
