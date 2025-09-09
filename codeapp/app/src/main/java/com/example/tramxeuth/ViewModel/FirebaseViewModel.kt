@@ -38,6 +38,11 @@ class FirebaseViewModel() : ViewModel() {
         firebaseRepository.updateAutoLeave(biensoxe, enabled) { success ->
             if (success) {
                 Log.d("Firebase", "Cập nhật tự động rời thành công")
+
+                // Nếu bật autoLeave và xe đang trong bãi -> ép về false ngay
+                if (enabled && _isTrangthai.value == true) {
+                    updateCarTrangthai(biensoxe, false)
+                }
             } else {
                 Log.e("Firebase", "Cập nhật tự động rời thất bại")
             }
@@ -49,6 +54,11 @@ class FirebaseViewModel() : ViewModel() {
         firebaseRepository.updateAutoLeave(biensophu, enabled) { success ->
             if (success) {
                 Log.d("Firebase", "Cập nhật tự động rời xe phụ thành công")
+
+                // Nếu bật autoLeave và xe phụ đang trong bãi -> ép về false ngay
+                if (enabled && _isTrangthaiPhu.value == true) {
+                    updateCarTrangthaiPhu(biensophu, false)
+                }
             } else {
                 Log.e("Firebase", "Cập nhật tự động rời xe phụ thất bại")
             }

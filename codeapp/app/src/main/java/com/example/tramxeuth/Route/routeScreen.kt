@@ -17,6 +17,8 @@ import com.example.tramxeuth.View.DetailParkingScreen
 import com.example.tramxeuth.View.LichSuHoatDongScreen
 import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
+import com.example.tramxeuth.View.PaymentFailScreen
+import com.example.tramxeuth.View.PaymentSuccessScreen
 import com.example.tramxeuth.View.PaymentWebView
 import com.example.tramxeuth.View.RegulationScreen
 import com.example.tramxeuth.View.ThongBaoScreen
@@ -98,5 +100,7 @@ fun routeScreen(
                 PaymentWebView(url, navController)
             }
         }
+        composable("payment_success") { PaymentSuccessScreen(navController) }
+        composable("payment_failed") { PaymentFailScreen(navController) }
     }
 }

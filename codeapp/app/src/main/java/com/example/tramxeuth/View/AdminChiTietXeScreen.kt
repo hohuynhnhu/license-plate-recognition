@@ -61,7 +61,12 @@ fun ChiTietXeScreen(navController: NavController, ngayId: String, collection: St
                 .get()
                 .await()
 
-            timelineList = timelineSnapshot.documents.map { it.id }
+            timelineList = timelineSnapshot.documents
+                .map { it.id }
+                .sortedByDescending { id ->
+                    // Tách số từ "timeline10" => 10
+                    id.filter { it.isDigit() }.toIntOrNull() ?: 0
+                }
 
         } catch (e: Exception) {
             errorMessage = "Lỗi: ${e.message}"

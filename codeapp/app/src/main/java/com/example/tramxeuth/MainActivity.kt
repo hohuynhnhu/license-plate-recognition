@@ -80,6 +80,18 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntentRoute(intent)
+
+        // Xử lý deep link VNPay
+        intent.data?.let { uri ->
+            val responseCode = uri.getQueryParameter("vnp_ResponseCode")
+            if (responseCode == "00") {
+                // Điều hướng tới màn hình thanh toán thành công
+                currentRoute.value = "payment_success"
+            } else {
+                // Điều hướng tới màn hình thanh toán thất bại
+                currentRoute.value = "payment_failed"
+            }
+        }
     }
 
     private fun handleIntentRoute(intent: Intent?) {
