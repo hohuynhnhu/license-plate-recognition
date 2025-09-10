@@ -201,7 +201,7 @@ fun ChiTietTimelineScreen(
                             "xe", "xemay" -> {
                                 // Biển số
                                 item {
-                                    Text("📌 Biển số", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Text(" Biển số", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(Modifier.height(8.dp))
                                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                         item.biensoxevao?.let {
@@ -231,7 +231,7 @@ fun ChiTietTimelineScreen(
 
                                 // Khuôn mặt
                                 item {
-                                    Text("🙂 Khuôn mặt", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    Text(" Khuôn mặt", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                                     Spacer(Modifier.height(8.dp))
                                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                         item.khuonmatvao?.let {

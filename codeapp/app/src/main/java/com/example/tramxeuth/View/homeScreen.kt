@@ -86,9 +86,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, firebaseViewModel: FirebaseViewModel) {
@@ -198,14 +200,27 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel, userV
             Text("Lịch sử")
         }
         Button(
-            onClick = { authViewModel.logout({
+            onClick = {
+                authViewModel.logout {
                     userViewModel.clearUserData()
                     navController.navigate("login")
-                }) },
-            modifier = Modifier.align(Alignment.BottomEnd)
+                }
+            },
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier
+                .size(56.dp)
+                .align(Alignment.BottomEnd)
         ) {
-            Text("Đăng xuất")
+            Icon(
+                imageVector = Icons.Default.Logout,
+                contentDescription = "Đăng xuất",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
         }
+
     }
 }
 
@@ -462,13 +477,15 @@ fun thongtinxePhu(
                 }
             }
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 buttonGiaHanPhu(
                     bienSoPhu = biensophu,
-                    userViewModel = userViewModel
+                    userViewModel = userViewModel,
+                    Modifier.weight(1f)
                 )
-                buttonDeletePhu(biensophu, userViewModel)
+                buttonDeletePhu(biensophu, userViewModel, Modifier.weight(1f))
             }
         }
     }
@@ -645,25 +662,31 @@ fun buttonLeave(
             }
         ),
         modifier = Modifier
-            .width(200.dp)
-            .height(55.dp),
+            .fillMaxWidth()
+            .heightIn(min = 55.dp, max = 60.dp),
         enabled = isTrangThai ?: false
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Chuẩn bị rời",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xF2FFFFFF),
-                fontSize = 21.sp
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                ),
+                fontSize = 21.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.width(10.dp))
             Icon(
                 imageVector = Icons.Default.Logout,
                 contentDescription = "",
                 tint = Color(0xF2FFFFFF),
-                modifier = Modifier.size(60.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
     }
@@ -694,7 +717,7 @@ fun ThemXePhuButton(userViewModel: UserViewModel) {
 }
 
 @Composable
-fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
+fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel, modifier: Modifier = Modifier) {
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -717,9 +740,7 @@ fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
         contentPadding = PaddingValues(0.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-        modifier = Modifier
-            .width(130.dp)
-            .height(55.dp)
+        modifier = modifier.heightIn(min = 55.dp, max = 60.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -747,7 +768,8 @@ fun buttonDeletePhu(biensophu: String?, userViewModel: UserViewModel) {
 @Composable
 fun buttonGiaHanPhu(
     bienSoPhu: String?,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val message = userViewModel.giaHanMessage
@@ -773,9 +795,7 @@ fun buttonGiaHanPhu(
             containerColor = if (isEnabled) Color(0xFFFFC107) else Color(0xFFBDBDBD)
         ),
         enabled = isEnabled,
-        modifier = Modifier
-            .width(200.dp)
-            .height(55.dp)
+        modifier = modifier.heightIn(min = 55.dp, max = 60.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
