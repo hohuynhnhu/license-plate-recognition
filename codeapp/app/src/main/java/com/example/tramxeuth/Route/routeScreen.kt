@@ -3,17 +3,20 @@ package com.example.tramxeuth.Route
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.tramxeuth.Model.typeXe
 import com.example.tramxeuth.View.AdminHomeScreen
 import com.example.tramxeuth.View.ChiTietHoatDongScreen
 import com.example.tramxeuth.View.ChiTietTimelineScreen
 import com.example.tramxeuth.View.ChiTietXeScreen
 import com.example.tramxeuth.View.DangKyScreen
 import com.example.tramxeuth.View.DangNhapScreen
-import com.example.tramxeuth.View.DetailParkingScreen
+import com.example.tramxeuth.View.DetailParkingScreenCar
+import com.example.tramxeuth.View.DetailParkingScreenMotorbike
 import com.example.tramxeuth.View.LichSuHoatDongScreen
 import com.example.tramxeuth.View.LichSuYCScreen
 import com.example.tramxeuth.View.ParkingHistoryScreen
@@ -46,7 +49,7 @@ fun routeScreen(
         composable("login") { DangNhapScreen(navController, authViewModel) }
         composable("logup") { DangKyScreen(navController, authViewModel)}
         composable("home") { homeScreen(navController, authViewModel, userViewModel, firebaseViewModel) }
-        composable("noti") { ThongBaoScreen(navController) }
+//        composable("noti") { ThongBaoScreen(navController) }
         composable("regulation") { RegulationScreen(navController, regulationViewModel) }
         composable("admin") {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
@@ -80,18 +83,43 @@ fun routeScreen(
             ChiTietTimelineScreen(navController, ngayId, collection, xeId, timelineId)
         }
         composable("parkingHistory/{biensoxe}") { backStackEntry ->
-            val biensoxe = backStackEntry.arguments?.getString("biensoxe")
-            if (biensoxe != null) {
-                ParkingHistoryScreen(navController,parkingHistoryViewModel, biensoxe)
-                Log.d("biensoxe", biensoxe)
+            val biensoxe = backStackEntry.arguments?.getString("biensoxe") ?: ""
+
+            ParkingHistoryScreen(
+                navHostController = navController,
+                parkingHistoryViewModel = parkingHistoryViewModel,
+                biensoxe = biensoxe,
+
+            )
+        }
+
+        composable("detail_parkingHistory/{collection}/{date}") { backStackEntry ->
+            val collectionArg  = backStackEntry.arguments?.getString("collection") ?: "XeMay"
+            val date = backStackEntry.arguments?.getString("date") ?: ""
+
+            val collection = try {
+                typeXe.valueOf(collectionArg ?: typeXe.XeMay.name)
+            } catch (e: IllegalArgumentException) {
+                typeXe.XeMay // fallback mặc định
+            }
+
+            val motorbikeHistoryState = parkingHistoryViewModel.listParkingHistoryMotorbike.collectAsState()
+            val carHistoryState = parkingHistoryViewModel.listParkingHistoryCar.collectAsState()
+
+            if (collection == typeXe.XeMay) {
+                DetailParkingScreenMotorbike(
+                    record = motorbikeHistoryState.value.find { it.date == date },
+                    navHostController = navController
+                )
+            } else {
+                DetailParkingScreenCar(
+                    record = carHistoryState.value.find { it.date == date },
+                    navHostController = navController
+                )
             }
         }
-        composable("detail_parkingHistory/{date}") { backStackEntry ->
-            val date = backStackEntry.arguments?.getString("date")
-            if (date != null) {
-                DetailParkingScreen(parkingHistoryViewModel, date, navController)
-            }
-        }
+
+
         composable("payment_web/{url}") { backStackEntry ->
             val encodedUrl = backStackEntry.arguments?.getString("url")
             val url = encodedUrl?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }

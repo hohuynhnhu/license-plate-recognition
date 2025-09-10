@@ -43,45 +43,40 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.tramxeuth.Model.ParkingRecord
+import com.example.tramxeuth.Model.ParkingRecordMotorbike
 import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
 import com.example.tramxeuth.ViewModel.convertDate
-
 @Composable
 fun ParkingHistoryScreen(
     navHostController: NavHostController,
     parkingHistoryViewModel: ParkingHistoryViewModel,
-    biensoxe: String
+    biensoxe: String,
 ) {
-    val listParkingHistory by parkingHistoryViewModel.listParkingHistory.collectAsState()
+    val listParkingHistoryUnified by parkingHistoryViewModel.listParkingHistoryUnified.collectAsState()
+
     LaunchedEffect(Unit) {
-        parkingHistoryViewModel.getParkingHistoryById(biensoxe)
+        parkingHistoryViewModel.getUnifiedParkingHistory(biensoxe)
     }
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+
+    Column(modifier = Modifier.fillMaxSize()) {
         TopLayout(navHostController, "Lịch sử gửi xe")
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-            ) {
-                listParkingHistory?.forEach{ parkingRecord ->
-                    item {
-                        HistoryChild(parkingRecord = parkingRecord, onClick = {navHostController.navigate("detail_parkingHistory/${parkingRecord.date}")})
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(listParkingHistoryUnified) { parkingRecord ->
+                HistoryChildUnified(
+                    parkingRecord = parkingRecord,
+                    onClick = {
+                        navHostController.navigate("detail_parkingHistory/${parkingRecord.type.name}/${parkingRecord.date}")
                     }
-                }
+                )
             }
         }
     }
 }
 
+
 @Composable
-fun HistoryChild(
+fun HistoryChildUnified(
     parkingRecord: ParkingRecord,
     onClick: () -> Unit,
 ) {
@@ -94,12 +89,9 @@ fun HistoryChild(
         Divider(thickness = 2.dp)
         Row(
             modifier = Modifier
-//                .background()
                 .padding(vertical = 15.dp, horizontal = 12.dp)
                 .fillMaxWidth()
-                .clickable(){
-                    onClick()
-                },
+                .clickable { onClick() },
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Column(
@@ -107,7 +99,7 @@ fun HistoryChild(
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Text(
-                    text = "Ngày gửi: ${parkingRecord.date?.let { convertDate(it) }}",
+                    text = "Ngày gửi: ${convertDate(parkingRecord.date)}",
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Bold,
@@ -125,7 +117,7 @@ fun HistoryChild(
                         tint =  MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Số lần gửi xe trong hôm nay: ${parkingRecord.vehicles!!.first { it.licensePlate != null }.totalIn}",
+                        text = "Loại xe: ${parkingRecord.type} | Số lần vào: ${parkingRecord.totalIn}, ra: ${parkingRecord.totalOut}",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 13.sp

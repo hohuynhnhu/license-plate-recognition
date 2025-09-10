@@ -1,143 +1,326 @@
 package com.example.tramxeuth.View
 
+import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.tramxeuth.Model.ParkingRecord
-import com.example.tramxeuth.Model.TimeLine
-import com.example.tramxeuth.ViewModel.FirebaseViewModel
-import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
+import com.example.tramxeuth.Model.*
 
 @Composable
-fun DetailParkingScreen(
-    parkingHistoryViewModel: ParkingHistoryViewModel,
-    date: String,
-    navHostController: NavHostController,
+fun DetailParkingScreenMotorbike(
+    record: ParkingRecordMotorbike?,
+    navHostController: NavHostController
 ) {
-    val listParkingHistory by parkingHistoryViewModel.listParkingHistory.collectAsState()
-
     var showMediaDetail by remember { mutableStateOf(false) }
     var selectedImage by remember { mutableStateOf<String?>(null) }
+
     if (showMediaDetail && selectedImage != null) {
         MediaDetailDialog(
-            image = selectedImage?:"",
+            image = selectedImage ?: "",
             onDismiss = { showMediaDetail = false }
         )
     }
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        TopLayout(navHostController, "Lịch sử gửi xe")
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-        ) {
-            val parkingHistory = listParkingHistory?.first { it.date == date }
-            item { Text(
-                text = "Ngày gửi: $date",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )  }
-            parkingHistory?.vehicles!!.first { it.licensePlate != null }.timelines?.forEachIndexed { index, timeLine ->
-                item { Text(
-                    text = "Lần ${index + 1}:",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                ) }
-                item { DetailParkingChild(timeLine, onClickImage = {
-                    selectedImage = it
-                    showMediaDetail = true
-                }) }
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopLayout(navHostController, "Lịch sử gửi xe máy")
+
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Text(
+                    text = "Ngày gửi: ${record?.date ?: "Không có"}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+
+            record?.vehicles?.forEach { vehicle ->
+                vehicle.timelines.forEachIndexed { index, timeline ->
+                    item {
+                        Text(
+                            text = "Xe ${vehicle.licensePlate} - Lần ${index + 1}:",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 12.dp, top = 5.dp)
+                        )
+                    }
+
+                    item {
+                        DetailParkingChildXeMay(
+                            timeLine = timeline,
+                            onClickImage = {
+                                selectedImage = it
+                                showMediaDetail = true
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun DetailParkingChild(
-    timeLine: TimeLine,
+fun DetailParkingScreenCar(
+    record: ParkingRecordCar?,
+    navHostController: NavHostController
+) {
+    var showMediaDetail by remember { mutableStateOf(false) }
+    var selectedImage by remember { mutableStateOf<String?>(null) }
+
+    if (showMediaDetail && selectedImage != null) {
+        MediaDetailDialog(
+            image = selectedImage ?: "",
+            onDismiss = { showMediaDetail = false }
+        )
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopLayout(navHostController, "Lịch sử gửi ô tô")
+
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Text(
+                    text = "Ngày gửi: ${record?.date ?: "Không có"}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+            record?.vehicles?.forEach { vehicle ->
+                Log.d("Dữ liệu record: ",record.toString())
+                vehicle.timelines.forEachIndexed { index, timeline ->
+                    item {
+                        Text(
+                            text = "Xe ${vehicle.licensePlate} - Lần ${index + 1}:",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 12.dp, top = 5.dp)
+                        )
+                    }
+
+                    item {
+                        DetailParkingChildXeOto(
+                            timeLine = timeline,
+                            onClickImage = {
+                                selectedImage = it
+                                showMediaDetail = true
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun DetailParkingChildXeMay(
+    timeLine: TimeLineXeMay,
     onClickImage: (String?) -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 5.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xCCADD8E6)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xCCADD8E6))
     ) {
-        Column(
-            modifier = Modifier.padding(5.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
+        Column(modifier = Modifier.padding(8.dp)) {
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Cột 1: Thời gian vào + khuôn mặt vào
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("Thời gian vào: ${timeLine.timeIn}")
+                    Text("Thời gian vào: ${timeLine.timein ?: "Chưa có"}")
                     AsyncImage(
-                        model = timeLine.imageIn,
-                        contentDescription = null,
+                        model = timeLine.khuonmatvao,
+                        contentDescription = "Ảnh khuôn mặt vào",
                         modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                            .clickable { onClickImage(timeLine.imageIn) }
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onClickImage(timeLine.khuonmatvao) }
                     )
                 }
+
+                // Cột 2: Thời gian ra + khuôn mặt ra
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("Thời gian ra: ${timeLine.timeOut}")
+                    Text("Thời gian ra: ${timeLine.timeout ?: "Chưa có"}")
                     AsyncImage(
-                        model = timeLine.imageOut,
-                        contentDescription = null,
+                        model = timeLine.khuonmatra,
+                        contentDescription = "Ảnh khuôn mặt ra",
                         modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                            .clickable { onClickImage(timeLine.imageOut) }
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onClickImage(timeLine.khuonmatra) }
                     )
+                }
+
+
+            }
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Cột 3: Biển số vào/ra
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("Biển số vào:")
+                        AsyncImage(
+                            model = timeLine.biensoxevao,
+                            contentDescription = "Ảnh biển số vào",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable{onClickImage(timeLine.biensoxevao)}
+                        )
+
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("Biển số ra:")
+                        AsyncImage(
+                            model = timeLine.biensoxera,
+                            contentDescription = "Ảnh biển số ra",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onClickImage(timeLine.biensoxera) }
+                    )
+                         }
+                }
+        }
+    }
+}
+@Composable
+fun DetailParkingChildXeOto(
+    timeLine: TimeLineXeOto,
+    onClickImage: (String?) -> Unit = {}
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFD1F0C9))
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+
+            // Row 1: Thời gian vào / ra
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Thời gian vào: ${timeLine.timein ?: "Chưa có"}")
+                    timeLine.hinhxevao?.let { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Thời gian ra: ${timeLine.timeout ?: "Chưa có"}")
+                    timeLine.hinhxera?.let { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Row 2: Biển số vào / ra
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Biển số vào:")
+                    timeLine.biensoxevao?.let { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Biển số ra:")
+                    timeLine.biensoxera?.let { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Row 3: Logo xe vào / ra
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Logo xe vào:")
+                    timeLine.logovao?.forEach { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Logo xe ra:")
+                    timeLine.logora?.forEach { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onClickImage(url) }
+                        )
+                    }
                 }
             }
         }
@@ -157,10 +340,7 @@ fun TopLayout(
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = {
-            navHostController.popBackStack()
-        }
-        ) {
+        IconButton(onClick = { navHostController.popBackStack() }) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowLeft,
                 contentDescription = "Quay lại",

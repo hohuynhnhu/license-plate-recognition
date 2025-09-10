@@ -299,14 +299,14 @@ fun topLayout(
                 tint = Color(0xFFFFC107)
             )
         }
-        IconButton(onClick = {navController.navigate("noti")}) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "",
-                modifier = Modifier.size(50.dp),
-                tint = Color(0xFFFFC107)
-            )
-        }
+//        IconButton(onClick = {navController.navigate("noti")}) {
+//            Icon(
+//                imageVector = Icons.Default.Notifications,
+//                contentDescription = "",
+//                modifier = Modifier.size(50.dp),
+//                tint = Color(0xFFFFC107)
+//            )
+//        }
     }
     QuantityScreen(
         showDialog = showDialog,
