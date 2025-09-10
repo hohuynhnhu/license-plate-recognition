@@ -137,7 +137,7 @@ fun SignForm(title: String, navController: NavController, viewModel: AuthViewMod
                     Text(
                         text = "Quên mật khẩu?",
                         textDecoration = TextDecoration.Underline,
-                        fontSize = 16.sp,
+                        fontSize = 17.sp,
                         color = Color(0xFFFFA500),
                         modifier = Modifier
                             .clickable {
@@ -145,7 +145,7 @@ fun SignForm(title: String, navController: NavController, viewModel: AuthViewMod
                                     resetMessage = message
                                 }
                             }
-                            .padding(top = 8.dp)
+                            .padding(top = 8.dp, bottom = 10.dp)
                     )
                 }
             }
