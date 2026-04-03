@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var firebaseViewModel: FirebaseViewModel
     private lateinit var regulationViewModel: RegulationViewModel
     private lateinit var parkingHistoryViewModel: ParkingHistoryViewModel
-
+    private lateinit var bienSoViewModel: BienSoViewModel
     private var currentRoute: MutableState<String?> = mutableStateOf(null)
     private var routeFromNotification: String? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -42,6 +42,8 @@ class MainActivity : ComponentActivity() {
         firebaseViewModel = FirebaseViewModel()
         regulationViewModel = RegulationViewModel()
         parkingHistoryViewModel = ParkingHistoryViewModel()
+        bienSoViewModel = BienSoViewModel()
+
 
         Log.d("MainActivity", "Received intent route: ${intent.getStringExtra("route")}")
 
@@ -56,6 +58,7 @@ class MainActivity : ComponentActivity() {
                     firebaseViewModel = firebaseViewModel,
                     regulationViewModel = regulationViewModel,
                     parkingHistoryViewModel = parkingHistoryViewModel,
+                    bienSoViewModel = bienSoViewModel
                 )
             }
         }

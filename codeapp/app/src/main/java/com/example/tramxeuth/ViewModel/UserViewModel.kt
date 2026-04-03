@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tramxeuth.Data.UserRepository
 import com.example.tramxeuth.Model.BienSoPhu
-import com.example.tramxeuth.Model.biensotrongbai
 import com.example.tramxeuth.Model.thongtindangky
 import com.example.tramxeuth.View.BienSoPhuResult
 import com.google.firebase.messaging.FirebaseMessaging

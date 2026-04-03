@@ -3,7 +3,6 @@ package com.example.tramxeuth.Data
 import android.content.ContentValues.TAG
 import android.util.Log
 import com.example.tramxeuth.Model.BienSoPhu
-import com.example.tramxeuth.Model.biensotrongbai
 import com.example.tramxeuth.Model.thongtindangky
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth

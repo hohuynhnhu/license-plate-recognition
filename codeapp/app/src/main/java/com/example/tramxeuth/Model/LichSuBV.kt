@@ -1,5 +1,4 @@
 package com.example.tramxeuth.Model
-import com.google.firebase.Timestamp
 data class LichSuBV(
     val CCCD: String = "",
     val EMAIL: String = "",

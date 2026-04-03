@@ -23,6 +23,7 @@ import com.example.tramxeuth.View.ParkingHistoryScreen
 import com.example.tramxeuth.View.PaymentFailScreen
 import com.example.tramxeuth.View.PaymentSuccessScreen
 import com.example.tramxeuth.View.PaymentWebView
+import com.example.tramxeuth.View.QuanLyBienSoScreen
 import com.example.tramxeuth.View.RegulationScreen
 import com.example.tramxeuth.View.ThongBaoScreen
 import com.example.tramxeuth.View.homeScreen
@@ -31,6 +32,7 @@ import com.example.tramxeuth.ViewModel.FirebaseViewModel
 import com.example.tramxeuth.ViewModel.ParkingHistoryViewModel
 import com.example.tramxeuth.ViewModel.RegulationViewModel
 import com.example.tramxeuth.ViewModel.UserViewModel
+import com.example.tramxeuth.ViewModel.BienSoViewModel
 import com.google.firebase.auth.FirebaseAuth
 import java.nio.charset.StandardCharsets
 
@@ -41,7 +43,8 @@ fun routeScreen(
     userViewModel: UserViewModel,
     firebaseViewModel: FirebaseViewModel,
     regulationViewModel: RegulationViewModel,
-    parkingHistoryViewModel: ParkingHistoryViewModel
+    parkingHistoryViewModel: ParkingHistoryViewModel,
+    bienSoViewModel: BienSoViewModel
 ) {
     val navController = rememberNavController()
 
@@ -130,5 +133,11 @@ fun routeScreen(
         }
         composable("payment_success") { PaymentSuccessScreen(navController) }
         composable("payment_failed") { PaymentFailScreen(navController) }
+        composable("parking") {
+            QuanLyBienSoScreen(
+                navController = navController,
+                bienSoViewModel = bienSoViewModel
+            )
+        }
     }
 }
